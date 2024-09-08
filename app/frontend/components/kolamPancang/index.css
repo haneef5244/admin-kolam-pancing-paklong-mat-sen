@@ -1,0 +1,42 @@
+.pond {
+    /* Full width */
+    /* Full height */
+    border-radius: 10px;
+    background-color: #add8e6;
+    /* Light blue for pond */
+}
+
+.pond-button {
+    width: 64px;
+    background-color: green;
+    color: #ffffff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+
+}
+
+.pond-button.available {
+    background-color: rgb(67, 160, 71);
+    color: #ffffff;
+}
+
+.pond-button.available:hover {
+    background-color: rgb(117, 117, 117);
+}
+
+.pond-button.booked {
+    background-color: rgb(117, 117, 117);
+    color: #ffffff;
+    /* Light red for booked slots */
+}
+
+.pond-button.not-available {
+    background-color: rgb(229, 57, 53);
+    color: #ffffff;
+}
+
+.pond-button.booked:hover {
+    background-color: rgb(117, 117, 117);
+    color: #ffffff;
+    /* Light red for booked slots */
+}

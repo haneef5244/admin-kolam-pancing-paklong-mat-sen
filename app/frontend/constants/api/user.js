@@ -1,0 +1,6 @@
+export const USER_REGISTER = '/api/users/register'
+export const USER_LOGIN = '/api/users/login'
+export const USER_VERIFICATION = '/api/users/verification'
+export const USER_LOGOUT = '/api/users/logout'
+export const USER_FORGOT_PASSWORD = '/api/users/reset_password'
+export const CONFIRM_RESET_PASSWORD = '/api/users/confirm_reset_password'

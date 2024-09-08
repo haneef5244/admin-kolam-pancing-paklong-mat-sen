@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Payment_Status {
+  CREATED
+  PENDING
+  CANCELLED
+  PAID
+}
+
+enum Jenis_Pertandingan {
+  OPEN
+  RANK
+}
+
+enum Add_Ons {
+  AIR_MINERAL
+}
+
+model kolam {
+  id              Int   @id @default(autoincrement())
+  label           Int   @db.Integer
+  jumlah_pancang  Int   @db.Integer
+  kolam_bookings  kolam_booking[]
+  pancangs        pancang[]
+  booking_availabilities      booking_availability[]
+
+}
+
+model tarikh_memancing {
+  id Int @id @default(autoincrement())
+  is_deleted Boolean @db.Boolean @default(false)
+  tarikh DateTime @db.Timestamptz(6)
+  created_on DateTime @db.Timestamptz(6)
+}
+
+model admin {
+  id             Int @id @default(autoincrement())
+  username       String @db.Text @unique
+  nama_pertama   String @db.Text
+  nama_akhir     String @db.Text
+  password       String @db.Text
+  telefon        String @db.Text
+  email          String @db.Text @unique
+  forgot_password String? @db.Text
+}
+
+model user {
+  id             Int @id @default(autoincrement())
+  username       String @db.Text @unique
+  nama_pertama   String @db.Text
+  nama_akhir     String @db.Text
+  password       String @db.Text
+  telefon        String @db.Text
+  email          String @db.Text @unique
+  kolam_bookings kolam_booking[]
+  verification_token String @db.Text
+  is_verified       Boolean @db.Boolean @default(false)
+  forgot_password String? @db.Text
+}
+
+model kolam_booking {
+  id                          Int @id @default(autoincrement())
+  kolam                       kolam  @relation(fields: [kolam_id], references:[id])
+  kolam_id                    Int
+  pancangs                    kolam_booking_pancang[]
+  add_ons                     kolam_booking_add_ons[]
+  payment                     kolam_booking_payments?
+  amount                      Decimal
+  user                        user?  @relation(fields: [user_id], references:[id])
+  user_id                     Int?
+  payment_status              Payment_Status @default(CREATED)
+  is_deleted                  Boolean  @default(false)
+  tarikh                      DateTime @db.Timestamp(6)
+  qr_link_file_name           String?   @db.Text       
+  is_checked_in               Boolean  @db.Boolean @default(false)
+  is_manual                   Boolean? @db.Boolean @default(false)
+  check_in_on                 DateTime? @db.Timestamptz(6)
+  created_on                  DateTime @db.Timestamptz(6) @default(now())
+}
+
+model products { 
+  id                  Int @id @default(autoincrement())
+  name                String @db.Text
+  type                String @db.Text
+  price               Int
+  quantity            Int?
+}
+
+model kolam_booking_pancang {
+  id                  Int @id @default(autoincrement())
+  nombor              String? @db.Text
+  kolam_booking       kolam_booking @relation(fields: [kolam_booking_id], references:[id])
+  kolam_booking_id    Int
+  created_on          DateTime  @default(now())
+}
+
+model kolam_booking_add_ons {
+  id                          Int           @id @default(autoincrement())
+  type                        Add_Ons      
+  quantity                    Int
+  kolam_booking               kolam_booking @relation(fields: [kolam_booking_id], references:[id])
+  kolam_booking_id            Int
+  created_on                  DateTime @default(now())
+}
+
+model kolam_booking_payments {
+  id                          Int           @id @default(autoincrement()) 
+  bill_code                   String?        @db.Text
+  ref_no                      String?        @db.Text
+  status                      String?        @db.Text
+  fpx_transaction_id          String?        @db.Text
+  transaction_id              String?        @db.Text
+  reason                      String?        @db.Text
+  kolam_booking               kolam_booking @relation(fields: [kolam_booking_id], references:[id])
+  kolam_booking_id            Int           @unique
+  transaction_time            DateTime?
+}
+
+model pancang {
+  id                          Int            @id @unique @default(autoincrement()) 
+  value                       String         @db.Text @unique
+  kolam                       kolam          @relation(fields: [kolam_id], references:[id])
+  kolam_id                    Int            
+  is_left                     Boolean?       @default(false)
+  is_right                    Boolean?       @default(false)
+  booking_availabilities      booking_availability[]
+  pertandingan_audit_logs     pertandingan_audit_log[]
+  is_deleted                  Boolean        @default(false)
+}
+
+model booking_availability {
+  id                          Int            @id @default(autoincrement()) 
+  kolam                       kolam          @relation(fields: [kolam_id], references:[id])
+  kolam_id                    Int           
+  tarikh                      DateTime?
+  pancang                     pancang        @relation(fields: [pancang_id], references:[id])
+  pancang_id                  Int         
+  is_available                Boolean        @default(true)   
+  @@unique([pancang_id, kolam_id, tarikh])
+}
+
+model pertandingan {
+  id                          Int            @id @default(autoincrement()) 
+  tarikh                      DateTime?
+  jenis                       Jenis_Pertandingan?
+  poster_url                  String?
+  is_deleted                  Boolean        @default(false)
+  pertandingan_audit_logs     pertandingan_audit_log[]
+  @@unique([tarikh])
+}
+
+model pertandingan_audit_log {
+  id                          Int            @id @default(autoincrement()) 
+  pertandingan                pertandingan   @relation(fields: [pertandingan_id], references:[id])
+  pertandingan_id             Int
+  pancang                     pancang        @relation(fields: [pancang_value], references:[value])
+  pancang_value               String                         
+  berat                       Decimal        @db.Decimal(18,6)
+  is_deleted                  Boolean        @default(false)
+}

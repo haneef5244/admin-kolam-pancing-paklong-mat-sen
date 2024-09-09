@@ -70,7 +70,7 @@ const KolamPancang = ({
             )
         }
 
-        return <Grid container>
+        return <Grid container flexDirection={'row'} alignItems={'space-between'} height={'100%'}>
             {buttons.map((button) => <Grid item xs={12} width={'100%'}>
                 <Button
                     key={button?.pancang?.value}
@@ -143,6 +143,15 @@ const KolamPancang = ({
             setTotal(Number(total) - Number(newAdditionalProducts[index].price));
         }
         setAdditionalProducts(newAdditionalProducts)
+    }
+
+    const computeAddOns = () => {
+        for (let i of additionalProducts) {
+            if (i.quantity) {
+                return i?.price * i?.quantity;
+            }
+        }
+        return 0;
     }
 
     const generateAdditionalProductsCalculation = () => {
@@ -334,7 +343,7 @@ const KolamPancang = ({
                                                         </Grid>
                                                         <Grid item xs={6} display={'flex'} justifyContent={'end'}>
                                                             <Typography fontWeight={'bold'}>
-                                                                RM {bookedSlots.length * 1}
+                                                                RM {bookedSlots.length * 90}
                                                             </Typography>
                                                         </Grid>
                                                     </Grid>
@@ -352,7 +361,7 @@ const KolamPancang = ({
                                                         </Grid>
                                                         <Grid item xs={6} display={'flex'} justifyContent={'end'}>
                                                             <Typography fontWeight={'bold'}>
-                                                                RM {total}
+                                                                RM {(bookedSlots?.length * 90) + computeAddOns()}
                                                             </Typography>
                                                         </Grid>
                                                     </Grid>

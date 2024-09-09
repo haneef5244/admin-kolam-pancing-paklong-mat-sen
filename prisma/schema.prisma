@@ -89,8 +89,18 @@ model kolam_booking {
   qr_link_file_name           String?   @db.Text       
   is_checked_in               Boolean  @db.Boolean @default(false)
   is_manual                   Boolean? @db.Boolean @default(false)
+  manual_booking              manual_booking?
   check_in_on                 DateTime? @db.Timestamptz(6)
   created_on                  DateTime @db.Timestamptz(6) @default(now())
+}
+
+model manual_booking {
+  id                          Int @id       @default(autoincrement())
+  nama_penuh                  String?       @db.Text
+  telefon                     String?       @db.Text
+  email                       String?       @db.Text
+  kolam_booking               kolam_booking @relation(fields: [kolam_id], references: [id])
+  kolam_id                    Int           @unique
 }
 
 model products { 

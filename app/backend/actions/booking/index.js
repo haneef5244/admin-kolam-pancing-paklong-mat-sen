@@ -2,9 +2,8 @@
 
 import { Prisma } from "@prisma/client";
 import prisma from "../../helpers/prisma";
-import moment from "moment";
 
-export const createManualBooking = async (kolamId, tarikh, pancang, addOns,) => {
+export const createManualBooking = async (kolamId, tarikh, pancang, addOns, namaPenuh, email, telefon) => {
     try {
         const booking = await prisma.$transaction(async txn => {
 
@@ -50,6 +49,13 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns,) => 
                                 data: pancang.map(e => ({
                                     nombor: e
                                 }))
+                            }
+                        },
+                        manual_booking: {
+                            create: {
+                                nama_penuh: namaPenuh,
+                                email: email || null,
+                                telefon: telefon
                             }
                         }
                     }

@@ -131,11 +131,11 @@ const BookingManualComponent = ({ data }) => {
 
     const steps = [
         {
-            title: 'Pilih pertandingan',
+            title: 'Pilih Pertandingan',
             component: <PilihPertandingan data={data} onHandleSelect={e => handleSelectTarikhPertandingan(e)} />
         },
         {
-            title: 'Isi Maklumat Pengguna',
+            title: 'Pilih Kolam',
             component: <PondLayout handleOnClick={id => handleSelectKolam(id)} />
         },
         {
@@ -154,7 +154,7 @@ const BookingManualComponent = ({ data }) => {
                 setAdditionalProducts={setAdditionalProducts} />
         },
         {
-            title: 'Semakan & Hantar',
+            title: 'Isi Maklumat Pengguna & Hantar',
             component: <MaklumatBookingManual
                 namaPenuh={namaPenuh}
                 handleChangeNamaPenuh={handleChangeNamaPenuh}
@@ -181,8 +181,17 @@ const BookingManualComponent = ({ data }) => {
         setActiveStep(0);
     };
 
+    const computeAddOns = () => {
+        for (let i of additionalProducts) {
+            if (i.quantity) {
+                return i?.price * i?.quantity;
+            }
+        }
+        return 0;
+    }
+
     const handleSubmit = async () => {
-        createManualBooking(kolamId, tarikhPertandingan, bookedSlots, additionalProducts).then(res => {
+        createManualBooking(kolamId, tarikhPertandingan, bookedSlots, additionalProducts, namaPenuh, email, telefon).then(res => {
             setOpenSemakan(false);
             setOpenBerjaya(true);
         }).catch(e => {
@@ -330,7 +339,7 @@ const BookingManualComponent = ({ data }) => {
                                 <Typography fontWeight={'bold'}>Jumlah Keseluruhan</Typography>
                             </Grid>
                             <Grid item xs="auto">
-                                <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + additionalProducts?.filter(e => e?.quantity > 0)?.length * 2}</Typography>
+                                <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns()}</Typography>
                             </Grid>
                         </Grid>
                     </Grid>

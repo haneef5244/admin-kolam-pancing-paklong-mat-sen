@@ -10,8 +10,18 @@ const lato = Lato({
 })
 
 export const metadata = {
-  title: "Mat Sen Kolam Pancing",
-  description: "Kolam Pancing Mat Sen",
+  title: "Game Keli - Juara RM10,000 & 200 Rank",
+  description: "Jom Sertai Pertandingan Memancing Keli di Kolam Pancing Paklong Mat Sen, Semanggol Perak.",
+  openGraph: {
+    images: [
+      {
+        url: 'https://admin.paklongmatsen.com/images/kolam-pancing-paklong-mat-sen.png', // Use full URL
+        width: 1200, // Recommended width
+        height: 630, // Recommended height for Open Graph
+        alt: 'Kolam Pancing Paklong Mat Sen',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({ children }) {

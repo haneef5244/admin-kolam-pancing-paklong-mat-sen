@@ -378,10 +378,19 @@ export function LoginComponent() {
                                 </Typography>
                             </Button>
                         </Grid> : <></>}
-                        <Grid item xs={12} textAlign={'center'}>
-                            <SocialIcon network='facebook' />
-                            <SocialIcon network='tiktok' />
-                            <SocialIcon network='google' />
+                        <Grid item xs={12} display={'flex'} justifyContent={'center'} textAlign={'center'} alignItems={'center'}>
+                            <Grid container justifyContent={'center'} textAlign={'center'}>
+                                <Grid item xs="auto">
+                                    <SocialIcon network='facebook' url='https://www.facebook.com/profile.php?id=61563728548244&mibextid=JRoKGi' />
+                                </Grid>
+                                <Grid item xs="auto">
+                                    <SocialIcon network='tiktok' url='https://www.tiktok.com/@kolampaklongmatsen?_t=8pXTzfCd03c&_r=1' />
+                                </Grid>
+                                <Grid item xs="auto">
+                                    <a href="https://maps.app.goo.gl/bomXiZ63vkhgRWZEA"><img width={"50px"} height={"50px"} src="/images/google_map.png" /></a>
+
+                                </Grid>
+                            </Grid>
 
                         </Grid>
                     </Grid>

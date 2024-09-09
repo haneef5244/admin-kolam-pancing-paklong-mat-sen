@@ -73,6 +73,14 @@ export async function POST(req) {
             'qr_link_file_name': true,
             'tarikh': true,
             'created_on': true,
+            'is_manual': true,
+            'manual_booking': {
+                select: {
+                    'nama_penuh': true,
+                    'email': true,
+                    'telefon': true
+                }
+            }
         }
     })
 

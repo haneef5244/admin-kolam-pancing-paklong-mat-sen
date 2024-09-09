@@ -49,6 +49,10 @@ const generateHeaders = () => {
         },
         {
             props: {},
+            value: 'Jenis Booking',
+        },
+        {
+            props: {},
             value: 'Tarikh Booking'
         },
     ]
@@ -121,19 +125,23 @@ const BookingPengguna = props => {
                     props: {},
                     value: <Grid container>
                         <Grid item xs={12}>
-                            <Typography>{d?.user?.nama_pertama} {d?.user?.nama_akhir}</Typography>
+                            <Typography>{d?.is_manual ? d?.manual_booking?.nama_penuh : `${d?.user?.nama_pertama} ${d?.user?.nama_akhir}`}</Typography>
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography>{d?.user?.email}</Typography>
+                            <Typography>{d?.is_manual ? d?.manual_booking?.email : d?.user?.email}</Typography>
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography>{d?.user?.telefon}</Typography>
+                            <Typography>{d?.is_manual ? d?.manual_booking?.telefon : d?.user?.telefon}</Typography>
                         </Grid>
                     </Grid>
                 })
                 colData.push({
                     props: {},
                     value: generatePaymentChip(d?.payment_status)
+                })
+                colData.push({
+                    props: {},
+                    value: d?.is_manual ? 'Manual' : 'Sistem'
                 })
                 colData.push({
                     props: { width: 200 },

@@ -12,7 +12,7 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
             const addOnsList = [];
 
             for (let ao of addOns) {
-                if (ao.name == 'Air Mineral') {
+                if (ao.name == 'Air Mineral' && ao?.quantity) {
                     addOnsList.push({
                         type: 'AIR_MINERAL',
                         quantity: ao?.quantity

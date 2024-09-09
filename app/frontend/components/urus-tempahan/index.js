@@ -96,7 +96,7 @@ const UrusTempahanComponent = props => {
                 </Grid>
                 <Grid container pt={2}>
                     <Grid item xs={12}>
-                        <LoadingButton onClick={handleSubmit} variant='contained'>Hantar</LoadingButton>
+                        <LoadingButton loading={submitLoading} onClick={handleSubmit} variant='contained'>Hantar</LoadingButton>
                     </Grid>
                 </Grid>
             </CardContent>

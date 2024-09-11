@@ -60,6 +60,7 @@ export async function POST(req) {
             },
             'user': {
                 select: {
+                    'id': true,
                     'nama_pertama': true,
                     'nama_akhir': true,
                     'email': true,

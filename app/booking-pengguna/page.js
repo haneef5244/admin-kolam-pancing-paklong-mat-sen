@@ -12,6 +12,12 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LoadingButton } from '@mui/lab';
+import { Download, Receipt } from '@mui/icons-material';
+import GenerateInvoice from '../frontend/components/invoice';
+import { saveAs } from 'file-saver'
+import { getBlobSasUrl, uploadBase64ImageToBlob } from '../backend/helpers/blob';
+import { getQR } from '../backend/actions/booking/get-qr';
+import { pdf } from '@react-pdf/renderer'
 
 const generateHeaders = () => {
     return [
@@ -55,6 +61,10 @@ const generateHeaders = () => {
             props: {},
             value: 'Tarikh Booking'
         },
+        {
+            props: { sx: { width: 250, textAlign: 'center' } },
+            value: 'Muat Turun Resit'
+        }
     ]
 }
 
@@ -81,6 +91,40 @@ const BookingPengguna = props => {
         tarikh: null,
     });
     const [loadingTable, setLoadingTable] = useState(false);
+
+    const handleDownloadReceipt = async (d) => {
+
+        let sasUrl = await getQR(d?.user?.id, d?.id, d?.tarikh, d?.qr_link_file_name);
+        let items = []
+        for (let p of d?.pancangs ?? []) {
+            items.push({
+                description: `Pancang ${p?.nombor}`,
+                price: 'RM 90'
+            })
+        }
+        for (let ao of d?.add_ons ?? []) {
+            if (ao?.quantity) {
+                items.push({
+                    description: ao?.type == 'AIR_MINERAL' ? 'Air Mineral' : '',
+                    price: `RM ${2 * ao?.quantity}`
+                })
+            }
+        }
+        let invoice = {
+            invoice_number: `#${d?.id}`,
+            date: d?.is_manual ? moment(d?.created_on).format('DD MMM YYYY HH:mm:ss') : moment(d?.payment?.transaction_time).format('Do MMM YYYY HH:mm:ss'),
+            tarikh_pancing: moment(d?.tarikh).format('DD MMM YYYY'),
+            kolam: d?.kolam_id,
+            qr_url: sasUrl,
+            client_name: d?.is_manual ? d?.manual_booking?.nama_penuh : `${d?.user?.nama_pertama} ${d?.user?.nama_akhir}`,
+            email: d?.is_manual ? d?.manual_booking?.email : d?.user?.email,
+            telefon: d?.is_manual ? d?.manual_booking?.telefon : d?.user?.telefon,
+            items,
+            total: `RM ${d?.amount}`
+        }
+        const blob = await pdf(<GenerateInvoice invoice={invoice} />).toBlob()
+        saveAs(blob, `Resit ${d?.is_manual ? d?.manual_booking?.nama_penuh : `${d?.user?.nama_pertama} ${d?.user?.nama_akhir}`}.pdf`)
+    }
 
     const getData = async (applyFilter) => {
         getAllBookings(applyFilter ? filterProps : {}).then(async resp => {
@@ -146,6 +190,10 @@ const BookingPengguna = props => {
                 colData.push({
                     props: { width: 200 },
                     value: moment(d?.created_on).format('Do MMMM YYYY, h:mm:ss a')
+                })
+                colData.push({
+                    props: { sx: { minWidth: 250, textAlign: 'center' } },
+                    value: d?.payment_status == 'PAID' ? <Button startIcon={<Download />} variant='outlined' onClick={() => handleDownloadReceipt(d)}>Muat turun resit</Button> : <></>
                 })
                 newData.push(colData);
             }

@@ -38,8 +38,6 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
                         kolam_id: Number(kolamId),
                         amount,
                         is_manual: true,
-                        is_checked_in: true,
-                        check_in_on: new Date().toISOString(),
                         tarikh: new Date(tarikh).toISOString(),
                         add_ons: {
                             create: addOnsList

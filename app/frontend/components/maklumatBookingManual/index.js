@@ -1,5 +1,5 @@
 import { EmailOutlined, PersonOutline, PhoneOutlined } from '@mui/icons-material';
-import { Button, Card, CardContent, CardHeader, FormControl, FormHelperText, Grid, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField } from '@mui/material';
+import { Button, Card, CardContent, CardHeader, Checkbox, FormControl, FormControlLabel, FormGroup, FormHelperText, Grid, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material';
 import { grey, red } from '@mui/material/colors';
 import React from 'react';
 
@@ -14,6 +14,12 @@ const MaklumatBookingManual = ({
     telefon,
     telefonErrorMessage = '',
     handleNext,
+    isDeposit,
+    depositAmount,
+    totalAmount,
+    handleChangeIsDeposit,
+    handleChangeDepositAmount,
+    depositErrorMessage
 }) => {
 
     return <Card sx={{ boxShadow: 'none', border: `1px solid ${grey[400]}` }}>
@@ -78,9 +84,7 @@ const MaklumatBookingManual = ({
                             type='text' autoComplete='tel' value={telefon} onChange={e => handleChangeTelefon(e.target.value)} helperText={telefonErrorMessage} error={telefonErrorMessage} fullWidth label="No. Telefon" variant="outlined"
                             startAdornment={
                                 <InputAdornment position='start'>
-                                    <IconButton
-                                        edge="end"
-                                    >
+                                    <IconButton edge="end">
                                         <PhoneOutlined />
                                     </IconButton>
                                 </InputAdornment>
@@ -90,14 +94,72 @@ const MaklumatBookingManual = ({
                     </FormControl>
                 </Grid>
                 <Grid item xs={12}>
+                    <FormGroup>
+                        <FormControlLabel control={<Checkbox onChange={handleChangeIsDeposit} value={isDeposit} />} label="Pengguna membuat bayaran deposit" />
+                    </FormGroup>
+                </Grid>
+                {isDeposit ? <Grid item xs={12}>
+                    <Grid container rowSpacing={2} justifyContent={'center'}>
+                        <Grid item xs={12}>
+                            <Typography>Nyatakan amaun deposit:</Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Grid container columnSpacing={2}>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth variant="outlined">
+                                        <InputLabel error={depositErrorMessage} htmlFor="deposit">Amaun Deposit</InputLabel>
+                                        <OutlinedInput
+                                            sx={{
+                                                borderRadius: 2
+                                            }}
+                                            helperText={depositErrorMessage} error={depositErrorMessage}
+                                            type='text' value={depositAmount} onChange={e => handleChangeDepositAmount(e.target.value)} fullWidth label="Amaun Deposit" variant="outlined"
+                                            startAdornment={
+                                                <InputAdornment position='start'>
+                                                    <IconButton edge="end">
+                                                        <Typography>RM</Typography>
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            }
+                                        />
+                                        <FormHelperText sx={{ color: red[600] }}>{depositErrorMessage}</FormHelperText>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth variant="outlined">
+                                        <InputLabel htmlFor="deposit">Jumlah Tunggakan</InputLabel>
+                                        <OutlinedInput
+                                            disabled={true}
+                                            sx={{
+                                                borderRadius: 2
+                                            }}
+                                            type='text' value={totalAmount - depositAmount} fullWidth label="Jumlah Tunggakan" variant="outlined"
+                                            startAdornment={
+                                                <InputAdornment position='start'>
+                                                    <IconButton edge="end">
+                                                        <Typography>RM</Typography>
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            }
+                                        />
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+
+                    </Grid>
+
+                </Grid> : <></>}
+                <Grid item xs={12}>
                     <Button onClick={handleNext} variant='contained'>
                         Semak & Hantar
                     </Button>
                 </Grid>
+
             </Grid>
         </CardContent>
 
-    </Card>
+    </Card >
 }
 
 export default MaklumatBookingManual;

@@ -18,6 +18,7 @@ datasource db {
 enum Payment_Status {
   CREATED
   PENDING
+  PENDING_PAYMENT
   CANCELLED
   PAID
 }
@@ -80,6 +81,7 @@ model kolam_booking {
   pancangs                    kolam_booking_pancang[]
   add_ons                     kolam_booking_add_ons[]
   payment                     kolam_booking_payments?
+  manual_receipts             kolam_booking_manual_receipts[]
   amount                      Decimal
   user                        user?  @relation(fields: [user_id], references:[id])
   user_id                     Int?
@@ -89,6 +91,8 @@ model kolam_booking {
   qr_link_file_name           String?   @db.Text       
   is_checked_in               Boolean  @db.Boolean @default(false)
   is_manual                   Boolean? @db.Boolean @default(false)
+  is_deposit                  Boolean? @db.Boolean @default(false)
+  deposit_amount              Int?
   manual_booking              manual_booking?
   check_in_on                 DateTime? @db.Timestamptz(6)
   created_on                  DateTime @db.Timestamptz(6) @default(now())
@@ -130,15 +134,22 @@ model kolam_booking_add_ons {
 
 model kolam_booking_payments {
   id                          Int           @id @default(autoincrement()) 
-  bill_code                   String?        @db.Text
-  ref_no                      String?        @db.Text
-  status                      String?        @db.Text
-  fpx_transaction_id          String?        @db.Text
-  transaction_id              String?        @db.Text
-  reason                      String?        @db.Text
+  bill_code                   String?       @db.Text
+  ref_no                      String?       @db.Text
+  status                      String?       @db.Text
+  fpx_transaction_id          String?       @db.Text
+  transaction_id              String?       @db.Text
+  reason                      String?       @db.Text
   kolam_booking               kolam_booking @relation(fields: [kolam_booking_id], references:[id])
   kolam_booking_id            Int           @unique
   transaction_time            DateTime?
+}
+
+model kolam_booking_manual_receipts {
+  id                          Int           @id @default(autoincrement()) 
+  receipt                     String?
+  kolam_booking               kolam_booking @relation(fields: [kolam_booking_id], references:[id])
+  kolam_booking_id            Int           
 }
 
 model pancang {

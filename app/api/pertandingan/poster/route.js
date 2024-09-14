@@ -1,6 +1,5 @@
 import { uploadBase64ImageToBlob } from "@/app/backend/helpers/blob";
 import prisma from "@/app/backend/helpers/prisma";
-import moment from "moment";
 import { NextResponse } from "next/server";
 
 export async function PATCH(req) {

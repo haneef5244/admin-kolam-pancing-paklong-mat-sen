@@ -287,7 +287,7 @@ export function LoginComponent() {
 
                 {isLogin || isRegister ? <Grid item xs={12}>
                     <FormControl fullWidth variant="outlined">
-                        <InputLabel error={passwordErrorMessage} htmlFor="outlined-adornment-password">Username</InputLabel>
+                        <InputLabel error={usernameErrorMessage} htmlFor="outlined-adornment-password">Username</InputLabel>
                         <OutlinedInput
                             sx={{
                                 borderRadius: 2
@@ -304,6 +304,7 @@ export function LoginComponent() {
                                 </InputAdornment>
                             }
                         />
+                        <FormHelperText sx={{ color: red[600] }}>{usernameErrorMessage}</FormHelperText>
                     </FormControl>
 
                 </Grid> : <></>}

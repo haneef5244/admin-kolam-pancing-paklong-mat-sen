@@ -3,7 +3,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../helpers/prisma";
 
-export const createManualBooking = async (kolamId, tarikh, pancang, addOns, namaPenuh, email, telefon) => {
+export const createManualBooking = async (kolamId, tarikh, pancang, addOns, namaPenuh, email, telefon, isDeposit, depositAmount) => {
     try {
         const booking = await prisma.$transaction(async txn => {
 
@@ -34,7 +34,7 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
             if (bookingAvailabilityLock == pancang?.length) {
                 await txn.kolam_booking.create({
                     data: {
-                        payment_status: 'PAID',
+                        payment_status: isDeposit ? 'PENDING_PAYMENT' : 'PAID',
                         kolam_id: Number(kolamId),
                         amount,
                         is_manual: true,
@@ -42,6 +42,8 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
                         add_ons: {
                             create: addOnsList
                         },
+                        is_deposit: isDeposit,
+                        deposit_amount: Number(depositAmount),
                         pancangs: {
                             createMany: {
                                 data: pancang.map(e => ({

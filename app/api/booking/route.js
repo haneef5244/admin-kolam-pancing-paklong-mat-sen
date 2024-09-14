@@ -81,7 +81,10 @@ export async function POST(req) {
                     'email': true,
                     'telefon': true
                 }
-            }
+            },
+            'is_deposit': true,
+            'deposit_amount': true,
+            'manual_receipts': true,
         }
     })
 

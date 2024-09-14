@@ -12,14 +12,12 @@ import { useRouter } from 'next/navigation';
 import KolamPancang from '../kolamPancang';
 import SimpleDialog from '../simpleDialog';
 import { createManualBooking } from '@/app/backend/actions/booking';
+import { isNumeric } from '../../utils/numbers';
 
 const BookingManualComponent = ({ data }) => {
     const navigate = useRouter();
 
     const [activeStep, setActiveStep] = React.useState(0);
-    const [skipped, setSkipped] = React.useState(new Set());
-
-
 
     const [tarikhPertandingan, setTarikhPertandingan] = useState(null);
     const [kolamId, setKolamId] = useState(null);
@@ -51,6 +49,10 @@ const BookingManualComponent = ({ data }) => {
 
     const [snackbarProps, setSnackbarProps] = useState({});
     const [openBerjaya, setOpenBerjaya] = useState(false);
+
+    const [isDeposit, setIsDeposit] = useState(false);
+    const [depositAmount, setDepositAmount] = useState(0);
+    const [depositErrorMessage, setDepositErrorMessage] = useState('');
 
     const handleSelectTarikhPertandingan = e => {
         setTarikhPertandingan(e);
@@ -101,7 +103,7 @@ const BookingManualComponent = ({ data }) => {
     }
 
     const handleChangeTelefon = val => {
-        if (!(/^[0-9]+$/.test(val)) || val.length > 40) {
+        if (!(/^[0-9]*$/.test(val)) || val.length > 40) {
             return;
         }
         setTelefon(val);
@@ -124,9 +126,40 @@ const BookingManualComponent = ({ data }) => {
             setNamaPenuhErrorMessage('Nama penuh perlu diisi.')
             valid = false
         }
+        if (depositErrorMessage) {
+            valid = false;
+        }
         if (valid) {
             setOpenSemakan(true);
         }
+    }
+
+    const handleChangeIsDeposit = () => {
+        if (isDeposit) {
+            setDepositAmount(0);
+        }
+        setIsDeposit(!isDeposit)
+    }
+
+    const handleChangeDepositAmount = (val) => {
+        if (!isNumeric(val)) {
+            return;
+        }
+        if (((bookedSlots?.length * 90) + computeAddOns() - val) <= 0) {
+            setDepositErrorMessage('Amaun Deposit hendaklah kurang daripada jumlah bayaran')
+        } else {
+            setDepositErrorMessage('');
+        }
+        setDepositAmount(val);
+    }
+
+    const computeAddOns = () => {
+        for (let i of additionalProducts) {
+            if (i.quantity) {
+                return i?.price * i?.quantity;
+            }
+        }
+        return 0;
     }
 
     const steps = [
@@ -167,8 +200,13 @@ const BookingManualComponent = ({ data }) => {
                 telefon={telefon}
                 handleChangeTelefon={handleChangeTelefon}
                 telefonErrorMessage={telefonErrorMessage}
-
                 handleNext={handleVerifyInfo}
+                isDeposit={isDeposit}
+                depositAmount={depositAmount}
+                handleChangeIsDeposit={handleChangeIsDeposit}
+                handleChangeDepositAmount={handleChangeDepositAmount}
+                totalAmount={(bookedSlots?.length * 90) + computeAddOns()}
+                depositErrorMessage={depositErrorMessage}
             />
         }
     ];
@@ -181,17 +219,9 @@ const BookingManualComponent = ({ data }) => {
         setActiveStep(0);
     };
 
-    const computeAddOns = () => {
-        for (let i of additionalProducts) {
-            if (i.quantity) {
-                return i?.price * i?.quantity;
-            }
-        }
-        return 0;
-    }
 
     const handleSubmit = async () => {
-        createManualBooking(kolamId, tarikhPertandingan, bookedSlots, additionalProducts, namaPenuh, email, telefon).then(res => {
+        createManualBooking(kolamId, tarikhPertandingan, bookedSlots, additionalProducts, namaPenuh, email, telefon, isDeposit, depositAmount).then(res => {
             setOpenSemakan(false);
             setOpenBerjaya(true);
         }).catch(e => {
@@ -333,7 +363,41 @@ const BookingManualComponent = ({ data }) => {
                     <Grid item xs={12}>
                         <Divider />
                     </Grid>
-                    <Grid item xs={12}>
+                    {isDeposit ? <Grid item xs={12}>
+                        <Grid container>
+                            <Grid item xs={12}>
+                                <Grid container justifyContent={'space-between'}>
+                                    <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>Jumlah Keseluruhan</Typography>
+                                    </Grid>
+                                    <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns()}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Grid container justifyContent={'space-between'}>
+                                    <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>Jumlah Deposit</Typography>
+                                    </Grid>
+                                    <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>RM {depositAmount}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Grid container justifyContent={'space-between'}>
+                                    <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>Baki Tunggakan</Typography>
+                                    </Grid>
+                                    <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns() - depositAmount}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+
+                    </Grid> : <Grid item xs={12}>
                         <Grid container justifyContent={'space-between'}>
                             <Grid item xs="auto">
                                 <Typography fontWeight={'bold'}>Jumlah Keseluruhan</Typography>
@@ -342,7 +406,7 @@ const BookingManualComponent = ({ data }) => {
                                 <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns()}</Typography>
                             </Grid>
                         </Grid>
-                    </Grid>
+                    </Grid>}
                 </Grid>}
                 handleOk={() => handleSubmit()}
                 handleClose={() => setOpenSemakan(false)} />

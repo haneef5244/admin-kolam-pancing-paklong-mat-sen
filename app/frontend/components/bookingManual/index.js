@@ -107,7 +107,7 @@ const BookingManualComponent = ({ data }) => {
         if (displayVoucherTelahDitambah) {
             const calculatedResp = await calculate([...bookedSlots.map(e => ({ name: 'PANCANG', label: e, quantity: 1 })), ...additionalProducts.map(e => ({ name: 'AIR_MINERAL', quantity: e?.quantity }))], voucher)
             setCalculatedRespObj(calculatedResp);
-            if (depositAmount >= calculatedResp?.totalDiscounted) {
+            if (depositAmount >= calculatedResp?.totalDiscounted && calculatedRespObj?.totalDiscounted != 0) {
                 setDepositErrorMessage('Amaun Deposit hendaklah kurang daripada jumlah bayaran');
                 return
             }
@@ -153,7 +153,7 @@ const BookingManualComponent = ({ data }) => {
             setNamaPenuhErrorMessage('Nama penuh perlu diisi.')
             valid = false
         }
-        if (depositErrorMessage) {
+        if (isDeposit && depositErrorMessage) {
             valid = false;
         }
         if (valid) {
@@ -169,7 +169,7 @@ const BookingManualComponent = ({ data }) => {
             }
             const calculatedResp = await calculate([...bookedSlots.map(e => ({ name: 'PANCANG', label: e, quantity: 1 })), ...additionalProducts.map(e => ({ name: 'AIR_MINERAL', quantity: e?.quantity }))], voucher)
             setCalculatedRespObj(calculatedResp);
-            if (depositAmount >= calculatedResp?.totalDiscounted) {
+            if (isDeposit && depositAmount >= calculatedResp?.totalDiscounted && calculatedResp?.totalDiscounted != 0) {
                 setDepositErrorMessage('Amaun Deposit hendaklah kurang daripada jumlah bayaran');
                 return
             }
@@ -184,11 +184,18 @@ const BookingManualComponent = ({ data }) => {
         setIsDeposit(!isDeposit)
     }
 
+    const getBalance = (depositAmount) => {
+        if (isNumeric(calculatedRespObj?.totalDiscounted)) {
+            return Number(calculatedRespObj?.totalDiscounted) - depositAmount;
+        }
+        return (bookedSlots?.length * 90) + computeAddOns() - depositAmount
+    }
+
     const handleChangeDepositAmount = (val) => {
         if (!isNumeric(val)) {
             return;
         }
-        if (((bookedSlots?.length * 90) + computeAddOns() - val) <= 0) {
+        if (getBalance(val) <= 0) {
             setDepositErrorMessage('Amaun Deposit hendaklah kurang daripada jumlah bayaran')
         } else {
             setDepositErrorMessage('');
@@ -248,7 +255,7 @@ const BookingManualComponent = ({ data }) => {
                 depositAmount={depositAmount}
                 handleChangeIsDeposit={handleChangeIsDeposit}
                 handleChangeDepositAmount={handleChangeDepositAmount}
-                totalAmount={calculatedRespObj?.totalDiscounted ? calculatedRespObj?.totalDiscounted : (bookedSlots?.length * 90) + computeAddOns()}
+                totalAmount={isNumeric(calculatedRespObj?.totalDiscounted) && Number(calculatedRespObj?.totalDiscounted) >= 0 ? calculatedRespObj?.totalDiscounted : (bookedSlots?.length * 90) + computeAddOns()}
                 depositErrorMessage={depositErrorMessage}
                 voucherErrorMessage={voucherErrorMessage}
                 voucher={voucher}

@@ -45,7 +45,7 @@ export const createManualBooking = async (kolamId, tarikh, calculatedObj, namaPe
                             }))
                         },
                         is_deposit: isDeposit,
-                        deposit_amount: Number(depositAmount),
+                        deposit_amount: isDeposit ? Number(depositAmount) : null,
                         pancangs: {
                             createMany: {
                                 data: pancang.map(e => ({

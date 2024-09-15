@@ -1,6 +1,6 @@
-import { EmailOutlined, PersonOutline, PhoneOutlined } from '@mui/icons-material';
+import { Discount, EmailOutlined, PersonOutline, PhoneOutlined } from '@mui/icons-material';
 import { Button, Card, CardContent, CardHeader, Checkbox, FormControl, FormControlLabel, FormGroup, FormHelperText, Grid, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material';
-import { grey, red } from '@mui/material/colors';
+import { green, grey, red } from '@mui/material/colors';
 import React from 'react';
 
 const MaklumatBookingManual = ({
@@ -19,7 +19,11 @@ const MaklumatBookingManual = ({
     totalAmount,
     handleChangeIsDeposit,
     handleChangeDepositAmount,
-    depositErrorMessage
+    depositErrorMessage,
+    voucherErrorMessage,
+    voucher,
+    handleChangeVoucher,
+    displayBaucarTelahDitambah
 }) => {
 
     return <Card sx={{ boxShadow: 'none', border: `1px solid ${grey[400]}` }}>
@@ -34,8 +38,8 @@ const MaklumatBookingManual = ({
                             sx={{
                                 borderRadius: 2
                             }}
-                            name='username'
-                            autoFocus={true} auto type='text' autoComplete='username' value={namaPenuh} onChange={e => handleChangeNamaPenuh(e.target.value)} helperText={namaPenuhErrorMessage} error={namaPenuhErrorMessage} fullWidth label="Nama Penuh" variant="outlined"
+                            name='fullName'
+                            autoFocus={true} auto type='text' autoComplete='name' value={namaPenuh} onChange={e => handleChangeNamaPenuh(e.target.value)} helperText={namaPenuhErrorMessage} error={namaPenuhErrorMessage} fullWidth label="Nama Penuh" variant="outlined"
                             startAdornment={
                                 <InputAdornment position='start'>
                                     <IconButton
@@ -104,8 +108,8 @@ const MaklumatBookingManual = ({
                             <Typography>Nyatakan amaun deposit:</Typography>
                         </Grid>
                         <Grid item xs={12}>
-                            <Grid container columnSpacing={2}>
-                                <Grid item xs={6}>
+                            <Grid container columnSpacing={2} rowSpacing={2}>
+                                <Grid item xs={12} sm={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel error={depositErrorMessage} htmlFor="deposit">Amaun Deposit</InputLabel>
                                         <OutlinedInput
@@ -125,7 +129,7 @@ const MaklumatBookingManual = ({
                                         <FormHelperText sx={{ color: red[600] }}>{depositErrorMessage}</FormHelperText>
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} sm={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel htmlFor="deposit">Jumlah Tunggakan</InputLabel>
                                         <OutlinedInput
@@ -150,6 +154,34 @@ const MaklumatBookingManual = ({
                     </Grid>
 
                 </Grid> : <></>}
+                <Grid item xs={12}>
+                    <Grid container columnSpacing={2}>
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth variant="outlined">
+                                <InputLabel error={voucherErrorMessage} htmlFor="voucher">Masukkan Baucar</InputLabel>
+                                <OutlinedInput
+                                    sx={{
+                                        borderRadius: 2
+                                    }}
+                                    name='voucherCode'
+                                    id="voucherCode"
+                                    helperText={voucherErrorMessage} error={voucherErrorMessage}
+                                    type='text' value={voucher} onChange={e => handleChangeVoucher(e.target.value)} fullWidth label="Masukkan Baucar" variant="outlined"
+                                    startAdornment={
+                                        <InputAdornment position='start'>
+                                            <IconButton edge="end">
+                                                <Discount />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    }
+                                />
+                                <FormHelperText sx={{ color: red[600] }}>{voucherErrorMessage}</FormHelperText>
+                                {displayBaucarTelahDitambah ? <FormHelperText sx={{ color: green[600] }}>Baucar telah ditambah!</FormHelperText> : <></>}
+
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </Grid>
                 <Grid item xs={12}>
                     <Button onClick={handleNext} variant='contained'>
                         Semak & Hantar

@@ -11,8 +11,8 @@ import { Box, Card, CircularProgress, Grid, Typography } from '@mui/material';
 
 export default function BasicTable({ rows, headers = [], loading }) {
     return (
-        <TableContainer component={Paper} lo>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
+            <Table stickyHeader sx={{ minWidth: 650, }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
                         {headers.map(header => <TableCell {...header.props}>{header?.value}</TableCell>)}

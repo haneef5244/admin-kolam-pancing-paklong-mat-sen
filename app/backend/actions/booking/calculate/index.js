@@ -26,7 +26,7 @@ export const calculate = async (products, voucher) => {
             const containsVoucher = pp?.vouchers?.filter(e => e?.code == voucher);
             if (containsVoucher?.length) {
                 let vouch = containsVoucher?.[0];
-                p.discountedPrice = p.quantity * pp.price * vouch.percentage_off;
+                p.discountedPrice = (p?.quantity * pp?.price) - (p.quantity * pp.price * vouch.percentage_off);
                 p.price = p.quantity * pp.price
             } else {
                 p.discountedPrice = p.quantity * pp.price

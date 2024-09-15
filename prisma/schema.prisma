@@ -94,6 +94,8 @@ model kolam_booking {
   is_deposit                  Boolean? @db.Boolean @default(false)
   deposit_amount              Int?
   manual_booking              manual_booking?
+  voucher                     vouchers?      @relation(fields: [voucher_id], references: [id])
+  voucher_id                  Int?
   check_in_on                 DateTime? @db.Timestamptz(6)
   created_on                  DateTime @db.Timestamptz(6) @default(now())
 }
@@ -107,12 +109,24 @@ model manual_booking {
   kolam_id                    Int           @unique
 }
 
+model vouchers {
+  id                          Int @id       @default(autoincrement())
+  code                        String?       @db.Text 
+  percentage_off              Decimal
+  starts_on                   DateTime?
+  expires_on                  DateTime?
+  products                    products[]    @relation("ProductsVouchers")
+  kolam_bookings              kolam_booking[]
+}
+
 model products { 
-  id                  Int @id @default(autoincrement())
-  name                String @db.Text
-  type                String @db.Text
-  price               Int
-  quantity            Int?
+  id                          Int           @id @default(autoincrement())
+  name                        String        @db.Text
+  label                       String        @db.Text
+  type                        String        @db.Text
+  price                       Int
+  quantity                    Int?
+  vouchers                    vouchers[]    @relation("ProductsVouchers")
 }
 
 model kolam_booking_pancang {

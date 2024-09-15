@@ -13,6 +13,8 @@ import KolamPancang from '../kolamPancang';
 import SimpleDialog from '../simpleDialog';
 import { createManualBooking } from '@/app/backend/actions/booking';
 import { isNumeric } from '../../utils/numbers';
+import { calculate } from '@/app/backend/actions/booking/calculate';
+import { validateVoucher } from '@/app/backend/actions/booking/voucher';
 
 const BookingManualComponent = ({ data }) => {
     const navigate = useRouter();
@@ -54,6 +56,17 @@ const BookingManualComponent = ({ data }) => {
     const [depositAmount, setDepositAmount] = useState(0);
     const [depositErrorMessage, setDepositErrorMessage] = useState('');
 
+    const [voucher, setVoucher] = useState('');
+    const [voucherErrorMessage, setVoucherErrorMessage] = useState('');
+    const [displayVoucherTelahDitambah, setDisplayVoucherTelahDitambah] = useState(false);
+
+    const [calculatedRespObj, setCalculatedRespObj] = useState(null);
+    const handleChangeVoucher = val => {
+        setVoucher(val);
+        setVoucherErrorMessage('')
+        setDisplayVoucherTelahDitambah(false);
+    }
+
     const handleSelectTarikhPertandingan = e => {
         setTarikhPertandingan(e);
         setActiveStep(1);
@@ -90,12 +103,23 @@ const BookingManualComponent = ({ data }) => {
         }
     }
 
-    const handleNextPancang = () => {
+    const handleNextPancang = async () => {
+        if (displayVoucherTelahDitambah) {
+            const calculatedResp = await calculate([...bookedSlots.map(e => ({ name: 'PANCANG', label: e, quantity: 1 })), ...additionalProducts.map(e => ({ name: 'AIR_MINERAL', quantity: e?.quantity }))], voucher)
+            setCalculatedRespObj(calculatedResp);
+            if (depositAmount >= calculatedResp?.totalDiscounted) {
+                setDepositErrorMessage('Amaun Deposit hendaklah kurang daripada jumlah bayaran');
+                return
+            }
+        }
         setActiveStep(3);
     }
 
     const handleChangeNamaPenuh = val => {
         setNamaPenuh(val);
+        if (val) {
+            setNamaPenuhErrorMessage('');
+        }
     }
 
     const handleChangeEmail = val => {
@@ -107,6 +131,9 @@ const BookingManualComponent = ({ data }) => {
             return;
         }
         setTelefon(val);
+        if (val) {
+            setTelefonErrorMessage('');
+        }
     }
 
     const resetErrorMessages = () => {
@@ -115,7 +142,7 @@ const BookingManualComponent = ({ data }) => {
         setNamaPenuhErrorMessage('')
     }
 
-    const handleVerifyInfo = () => {
+    const handleVerifyInfo = async () => {
         resetErrorMessages();
         let valid = true;
         if (!telefon) {
@@ -130,6 +157,22 @@ const BookingManualComponent = ({ data }) => {
             valid = false;
         }
         if (valid) {
+            if (voucher) {
+                const isValidVoucher = await validateVoucher(voucher);
+                if (!isValidVoucher) {
+                    setVoucherErrorMessage('Maaf, baucar ini tidak wujud atau telah tamat tempoh.')
+                    setCalculatedRespObj(null);
+                    return
+                } else {
+                    setDisplayVoucherTelahDitambah(true);
+                }
+            }
+            const calculatedResp = await calculate([...bookedSlots.map(e => ({ name: 'PANCANG', label: e, quantity: 1 })), ...additionalProducts.map(e => ({ name: 'AIR_MINERAL', quantity: e?.quantity }))], voucher)
+            setCalculatedRespObj(calculatedResp);
+            if (depositAmount >= calculatedResp?.totalDiscounted) {
+                setDepositErrorMessage('Amaun Deposit hendaklah kurang daripada jumlah bayaran');
+                return
+            }
             setOpenSemakan(true);
         }
     }
@@ -196,7 +239,7 @@ const BookingManualComponent = ({ data }) => {
                 email={email}
                 handleChangeEmail={handleChangeEmail}
                 emailErrorMessage={emailErrorMessage}
-
+                displayBaucarTelahDitambah={displayVoucherTelahDitambah}
                 telefon={telefon}
                 handleChangeTelefon={handleChangeTelefon}
                 telefonErrorMessage={telefonErrorMessage}
@@ -205,13 +248,19 @@ const BookingManualComponent = ({ data }) => {
                 depositAmount={depositAmount}
                 handleChangeIsDeposit={handleChangeIsDeposit}
                 handleChangeDepositAmount={handleChangeDepositAmount}
-                totalAmount={(bookedSlots?.length * 90) + computeAddOns()}
+                totalAmount={calculatedRespObj?.totalDiscounted ? calculatedRespObj?.totalDiscounted : (bookedSlots?.length * 90) + computeAddOns()}
                 depositErrorMessage={depositErrorMessage}
+                voucherErrorMessage={voucherErrorMessage}
+                voucher={voucher}
+                handleChangeVoucher={handleChangeVoucher}
             />
         }
     ];
 
     const handleBack = () => {
+        if (activeStep == 3) {
+            setDepositAmount(0)
+        }
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
     };
 
@@ -221,7 +270,7 @@ const BookingManualComponent = ({ data }) => {
 
 
     const handleSubmit = async () => {
-        createManualBooking(kolamId, tarikhPertandingan, bookedSlots, additionalProducts, namaPenuh, email, telefon, isDeposit, depositAmount).then(res => {
+        createManualBooking(kolamId, tarikhPertandingan, calculatedRespObj, namaPenuh, email, telefon, isDeposit, depositAmount, voucher).then(res => {
             setOpenSemakan(false);
             setOpenBerjaya(true);
         }).catch(e => {
@@ -327,14 +376,24 @@ const BookingManualComponent = ({ data }) => {
                             <Grid item xs={12}>
                                 <Typography fontWeight={'bold'}>Pancang</Typography>
                             </Grid>
-                            {bookedSlots?.map(e => <Grid item xs={12}>
+                            {calculatedRespObj?.products?.filter(e => e?.name == 'PANCANG').map(e => <Grid item xs={12}>
                                 <Grid container justifyContent={'space-between'}>
                                     <Grid item xs="auto">
-                                        {e}
+                                        {e?.label}
                                     </Grid>
-                                    <Grid item xs="auto">
-                                        RM 90
-                                    </Grid>
+                                    {e?.discountedPrice != e?.price ? <Grid item xs="auto">
+                                        <Grid container columnSpacing={2}>
+                                            <Grid item xs="auto">
+                                                <Typography sx={{ textDecoration: 'line-through' }}>RM {e?.price}</Typography>
+                                            </Grid>
+                                            <Grid item xs="auto">
+                                                <Typography>RM {e?.discountedPrice}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid> : <Grid item xs="auto">
+                                        RM {e?.price}
+                                    </Grid>}
+
                                 </Grid>
 
                             </Grid>)}
@@ -346,14 +405,23 @@ const BookingManualComponent = ({ data }) => {
                             <Grid item xs={12}>
                                 <Typography fontWeight={'bold'}>Add-ons</Typography>
                             </Grid>
-                            {additionalProducts?.filter(e => e?.quantity > 0)?.length ? additionalProducts?.filter(e => e?.quantity > 0).map(e => <Grid item xs={12}>
+                            {calculatedRespObj?.products?.filter(e => e?.type == 'ADD_ONS' && e?.quantity > 0)?.length ? calculatedRespObj?.products?.filter(e => e?.type == 'ADD_ONS' && e?.quantity > 0)?.map(e => <Grid item xs={12}>
                                 <Grid container justifyContent={'space-between'}>
                                     <Grid item xs="auto">
-                                        {e?.name} x {e?.quantity}
+                                        {e?.label} x {e?.quantity}
                                     </Grid>
-                                    <Grid item xs="auto">
-                                        RM {e?.price * e?.quantity}
-                                    </Grid>
+                                    {e?.discountedPrice != e?.price ? <Grid item xs="auto">
+                                        <Grid container columnSpacing={2}>
+                                            <Grid item xs="auto">
+                                                <Typography sx={{ textDecoration: 'line-through' }}>RM {e?.price}</Typography>
+                                            </Grid>
+                                            <Grid item xs="auto">
+                                                <Typography>RM {e?.discountedPrice}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid> : <Grid item xs="auto">
+                                        RM {e?.price}
+                                    </Grid>}
                                 </Grid>
 
                             </Grid>) : <Grid item xs={12}>Tiada</Grid>}
@@ -370,9 +438,19 @@ const BookingManualComponent = ({ data }) => {
                                     <Grid item xs="auto">
                                         <Typography fontWeight={'bold'}>Jumlah Keseluruhan</Typography>
                                     </Grid>
-                                    <Grid item xs="auto">
-                                        <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns()}</Typography>
-                                    </Grid>
+                                    {calculatedRespObj?.total != calculatedRespObj?.totalDiscounted ? <Grid item xs="auto">
+                                        <Grid container columnSpacing={2}>
+                                            <Grid item xs="auto">
+                                                <Typography fontWeight={'bold'} sx={{ textDecoration: 'line-through' }}>RM {calculatedRespObj?.total}</Typography>
+                                            </Grid>
+                                            <Grid item xs="auto">
+                                                <Typography fontWeight={'bold'}>RM {calculatedRespObj?.totalDiscounted}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid> : <Grid item xs="auto">
+                                        <Typography fontWeight={'bold'}>RM {calculatedRespObj?.totalDiscounted}</Typography>
+                                    </Grid>}
+
                                 </Grid>
                             </Grid>
                             <Grid item xs={12}>
@@ -391,7 +469,7 @@ const BookingManualComponent = ({ data }) => {
                                         <Typography fontWeight={'bold'}>Baki Tunggakan</Typography>
                                     </Grid>
                                     <Grid item xs="auto">
-                                        <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns() - depositAmount}</Typography>
+                                        <Typography fontWeight={'bold'}>RM {calculatedRespObj?.totalDiscounted - depositAmount}</Typography>
                                     </Grid>
                                 </Grid>
                             </Grid>
@@ -402,15 +480,24 @@ const BookingManualComponent = ({ data }) => {
                             <Grid item xs="auto">
                                 <Typography fontWeight={'bold'}>Jumlah Keseluruhan</Typography>
                             </Grid>
-                            <Grid item xs="auto">
-                                <Typography fontWeight={'bold'}>RM {(bookedSlots?.length * 90) + computeAddOns()}</Typography>
-                            </Grid>
+                            {calculatedRespObj?.total != calculatedRespObj?.totalDiscounted ?
+                                <Grid item xs="auto">
+                                    <Grid container columnSpacing={2}>
+                                        <Grid item xs="auto">
+                                            <Typography fontWeight={'bold'} sx={{ textDecoration: 'line-through' }}>RM {calculatedRespObj?.total}</Typography>
+                                        </Grid>
+                                        <Grid item xs="auto">
+                                            <Typography fontWeight={'bold'}>RM {calculatedRespObj?.totalDiscounted}</Typography>
+                                        </Grid>
+                                    </Grid>
+                                </Grid> : <Grid item xs="auto">
+                                    <Typography fontWeight={'bold'}>RM {calculatedRespObj?.totalDiscounted}</Typography>
+                                </Grid>}
                         </Grid>
                     </Grid>}
                 </Grid>}
                 handleOk={() => handleSubmit()}
                 handleClose={() => setOpenSemakan(false)} />
-
         </Grid>
         <Dialog open={openBerjaya} onClose={() => navigate.push('/')} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
             <DialogTitle id="alert-dialog-title">

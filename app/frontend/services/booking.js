@@ -1,4 +1,4 @@
-import { BOOKING_AVAILABILITY, BOOKING_DEPOSIT, BOOKING_RECEIPT, BOOKING_SCAN, GET_ALL_BOOKINGS } from "../constants/api/booking"
+import { BOOKING_AVAILABILITY, BOOKING_CALCULATE_PRICE, BOOKING_DEPOSIT, BOOKING_RECEIPT, BOOKING_SCAN, GET_ALL_BOOKINGS } from "../constants/api/booking"
 
 export const verifyBookingQr = async (body) => {
     return await fetch(BOOKING_SCAN, {
@@ -49,5 +49,12 @@ export const updateDepositForBooking = async (body) => {
     return await fetch(`${BOOKING_DEPOSIT}`, {
         method: 'PATCH',
         body: JSON.stringify(body)
+    })
+}
+
+export const calculateBookingPrice = async body => {
+    return await fetch(BOOKING_CALCULATE_PRICE, {
+        method: 'POST',
+        body: JSON.stringify(body),
     })
 }

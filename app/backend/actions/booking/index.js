@@ -3,23 +3,13 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../helpers/prisma";
 
-export const createManualBooking = async (kolamId, tarikh, pancang, addOns, namaPenuh, email, telefon, isDeposit, depositAmount) => {
+export const createManualBooking = async (kolamId, tarikh, calculatedObj, namaPenuh, email, telefon, isDeposit, depositAmount, voucher) => {
     try {
         const booking = await prisma.$transaction(async txn => {
 
-            let amount = pancang.length * 90;
-
-            const addOnsList = [];
-
-            for (let ao of addOns) {
-                if (ao.name == 'Air Mineral' && ao?.quantity) {
-                    addOnsList.push({
-                        type: 'AIR_MINERAL',
-                        quantity: ao?.quantity
-                    })
-                    amount += (ao.quantity * 2)
-                }
-            }
+            let amount = calculatedObj?.totalDiscounted;
+            let pancang = calculatedObj?.products?.filter(e => e?.name == 'PANCANG')?.map(e => e?.label);
+            let addOns = calculatedObj?.products?.filter(e => e?.type == 'ADD_ONS' && e?.quantity);
 
             const bookingAvailabilityLock = await txn.$executeRaw`
                 SELECT * from booking_availability AS ba
@@ -32,6 +22,15 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
                 FOR UPDATE`;
 
             if (bookingAvailabilityLock == pancang?.length) {
+                const voucherData = await txn.vouchers.findFirst({
+                    where: {
+                        code: voucher
+                    },
+                    select: {
+                        'id': true,
+                    }
+                });
+
                 await txn.kolam_booking.create({
                     data: {
                         payment_status: isDeposit ? 'PENDING_PAYMENT' : 'PAID',
@@ -40,7 +39,10 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
                         is_manual: true,
                         tarikh: new Date(tarikh).toISOString(),
                         add_ons: {
-                            create: addOnsList
+                            create: addOns.map(e => ({
+                                type: e?.name,
+                                quantity: e?.quantity
+                            }))
                         },
                         is_deposit: isDeposit,
                         deposit_amount: Number(depositAmount),
@@ -57,7 +59,8 @@ export const createManualBooking = async (kolamId, tarikh, pancang, addOns, nama
                                 email: email || null,
                                 telefon: telefon
                             }
-                        }
+                        },
+                        voucher_id: Number(voucherData?.id)
                     }
                 })
                 const resp = await txn.booking_availability.updateMany({

@@ -12,7 +12,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LoadingButton } from '@mui/lab';
-import { CloudUpload, Delete, Download, Edit, Receipt, Upload } from '@mui/icons-material';
+import { CloudUpload, Delete, Discount, Download, Edit, Receipt, Upload } from '@mui/icons-material';
 import GenerateInvoice from '../frontend/components/invoice';
 import { saveAs } from 'file-saver'
 import { getQR } from '../backend/actions/booking/get-qr';
@@ -54,6 +54,10 @@ const generateHeaders = () => {
         {
             props: {},
             value: 'Add Ons'
+        },
+        {
+            props: {},
+            value: 'Baucar',
         },
         {
             props: {},
@@ -250,6 +254,10 @@ const BookingPengguna = props => {
                             <Typography textTransform={'capitalize'}>{ao?.type?.replace('_', ' ')} x {ao?.quantity}</Typography>
                         </Grid>)}
                     </Grid>
+                })
+                colData.push({
+                    props: { sx: { minWidth: '150px' } },
+                    value: d?.voucher?.code ? <Chip size='medium' sx={{ background: green[600], color: '#ffffff', }} label={<Typography fontWeight={'bold'}>{d?.voucher?.code}</Typography>} icon={<Discount color='#ffffff' />} /> : ''
                 })
                 colData.push({
                     props: { sx: { minWidth: '150px' } },

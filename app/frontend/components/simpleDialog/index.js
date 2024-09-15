@@ -5,6 +5,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { Grid } from '@mui/material';
 
 export default function SimpleDialog({
     open,
@@ -31,10 +32,17 @@ export default function SimpleDialog({
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose}>Tidak Setuju</Button>
-                    <Button onClick={handleOk} autoFocus>
-                        Setuju
-                    </Button>
+                    <Grid container justifyContent={'end'} columnSpacing={2}>
+                        <Grid item xs="auto">
+                            <Button variant='outlined' onClick={handleClose}>Tidak Setuju</Button>
+                        </Grid>
+                        <Grid item xs="auto">
+                            <Button variant='contained' onClick={handleOk} autoFocus>
+                                Setuju
+                            </Button>
+                        </Grid>
+                    </Grid>
+
                 </DialogActions>
             </Dialog>
         </React.Fragment>

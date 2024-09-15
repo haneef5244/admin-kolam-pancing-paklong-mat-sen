@@ -41,6 +41,59 @@ async function main() {
     //     ]
     // })
     // Add more seeding operations here
+    // await prisma.products.createMany({
+    //     data: [
+    //         {
+    //             name: 'PANCANG',
+    //             label: 'Pancang',
+    //             type: 'PRODUCT',
+    //             price: 90,
+    //             quantity: 0,
+    //         },
+    //         {
+    //             name: 'AIR_MINERAL',
+    //             label: 'Air Mineral',
+    //             type: 'ADD_ONS',
+    //             price: 2,
+    //             quantity: 0,
+    //         },
+    //     ]
+    // })
+    const pancang = await prisma.products.findFirst({
+        where: {
+            label: 'Pancang'
+        },
+        select: {
+            'id': true
+        }
+    })
+
+    const resp = await prisma.vouchers.create({
+        data: {
+            code: 'OKU_50%_OFF',
+            percentage_off: 0.5,
+            starts_on: new Date().toISOString(),
+            expires_on: new Date('9999-01-01').toISOString(),
+        },
+        select: {
+            'id': true
+        }
+    });
+
+    await prisma.vouchers.update({
+        where: {
+            id: Number(resp?.id)
+        },
+        data: {
+            products: {
+                connect: [
+                    {
+                        id: pancang.id
+                    }
+                ]
+            }
+        }
+    })
 }
 
 main()

@@ -75,6 +75,7 @@ export async function POST(req) {
             'tarikh': true,
             'created_on': true,
             'is_manual': true,
+            'voucher': true,
             'manual_booking': {
                 select: {
                     'nama_penuh': true,

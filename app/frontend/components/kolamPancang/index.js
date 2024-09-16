@@ -45,37 +45,12 @@ const KolamPancang = ({
     };
 
     const renderButtons = (buttons) => {
-        let maps = []
-
-        for (let i = 0; i < buttons.length; i++) {
-            maps.push(
-                <Grid item xs={12} width={'100%'}>
-                    <Button
-                        key={buttons[i]?.pancang?.value}
-                        disabled={!buttons[i]?.is_available}
-                        className={`pond-button ${bookedSlots.includes(buttons[i]?.pancang?.value) ? 'booked' : !buttons[i]?.is_available ? 'not-available' : 'available'}`}
-                        onClick={() => handleBookSlot(buttons[i]?.pancang?.value)}
-                        sx={{
-                            width: '64px', ':focus': {
-                                background: 'unset'
-                            },
-                            ':disabled': {
-                                color: grey[300]
-                            }
-                        }}
-                    >
-                        {i}
-                    </Button>
-                </Grid>
-            )
-        }
-
         return <Grid container flexDirection={'row'} alignItems={'space-between'} height={'100%'}>
             {buttons.map((button) => <Grid item xs={12} width={'100%'}>
                 <Button
                     key={button?.pancang?.value}
-                    disabled={!button?.is_available}
-                    className={`pond-button ${bookedSlots.includes(button?.pancang?.value) ? 'booked' : !button?.is_available ? 'not-available' : 'available'}`}
+                    disabled={!button?.is_available || !button?.pancang?.is_available}
+                    className={`pond-button ${bookedSlots.includes(button?.pancang?.value) ? 'booked' : !button?.is_available || !button?.pancang?.is_available ? 'not-available' : 'available'}`}
                     onClick={() => handleBookSlot(button?.pancang?.value)}
                     sx={{
                         width: '64px',

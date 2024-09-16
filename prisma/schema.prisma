@@ -176,6 +176,7 @@ model pancang {
   booking_availabilities      booking_availability[]
   pertandingan_audit_logs     pertandingan_audit_log[]
   is_deleted                  Boolean        @default(false)
+  is_available                Boolean        @default(true)
 }
 
 model booking_availability {

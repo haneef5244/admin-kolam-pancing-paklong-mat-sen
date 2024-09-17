@@ -1,107 +1,125 @@
-// components/Dashboard.js
-'use client';
-import React, { useEffect, useState } from "react";
-import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
-import { Grid, Typography, Box, TextField } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import axios from "axios";
-import { format } from "date-fns";
-import moment from "moment";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import React from 'react';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 
-const Dashboard = () => {
-    const [bookingsData, setBookingsData] = useState([]);
-    const [totalAmount, setTotalAmount] = useState(0);
-    const [selectedDate, setSelectedDate] = useState(moment()); // Default to today's date
+// Custom animation function
+(function (H) {
+    H.seriesTypes.pie.prototype.animate = function (init) {
+        const series = this,
+            chart = series.chart,
+            points = series.points,
+            { animation } = series.options,
+            { startAngleRad } = series;
 
-    useEffect(() => {
-        // Fetch data from API
-        const fetchData = async () => {
-            try {
-                const formattedDate = moment(selectedDate).format("yyyy-MM-dd");
+        function fanAnimate(point, startAngleRad) {
+            const graphic = point.graphic,
+                args = point.shapeArgs;
 
-                const data = {
-                    "bookings": [
-                        { "status": "PAID", "amount": 100 },
-                        { "status": "CANCELLED", "amount": 0 },
-                        { "status": "PENDING_PAYMENT", "amount": 50 }
-                    ]
-                }
+            if (graphic && args) {
 
-                // Calculate total amount for the selected date
-                const total = data.reduce((sum, booking) => sum + booking.amount, 0);
-                setTotalAmount(total);
-
-                setBookingsData(data);
-            } catch (error) {
-                console.error("Error fetching data", error);
+                graphic
+                    .attr({
+                        start: startAngleRad,
+                        end: startAngleRad,
+                        opacity: 1
+                    })
+                    .animate({
+                        start: args.start,
+                        end: args.end
+                    }, {
+                        duration: animation.duration / points.length
+                    }, function () {
+                        if (points[point.index + 1]) {
+                            fanAnimate(points[point.index + 1], args.end);
+                        }
+                        if (point.index === series.points.length - 1) {
+                            series.dataLabelsGroup.animate({
+                                opacity: 1
+                            },
+                                void 0,
+                                function () {
+                                    points.forEach(point => {
+                                        point.opacity = 1;
+                                    });
+                                    series.update({
+                                        enableMouseTracking: true
+                                    }, false);
+                                    chart.update({
+                                        plotOptions: {
+                                            pie: {
+                                                innerSize: '40%',
+                                                borderRadius: 8
+                                            }
+                                        }
+                                    });
+                                });
+                        }
+                    });
             }
-        };
+        }
 
-        fetchData();
-    }, [selectedDate]); // Re-fetch data when the selected date changes
+        if (init) {
+            points.forEach(point => {
+                point.opacity = 0;
+            });
+        } else {
+            fanAnimate(points[0], startAngleRad);
+        }
+    };
+}(Highcharts));
 
-    // Prepare chart data
-    const chartOptions = {
+const PieChart = ({ title, subtitle, data }) => {
+    const options = {
         chart: {
-            type: "column",
+            type: 'pie',
         },
         title: {
-            text: `Booking Payment Status for ${moment(selectedDate).format("dd MMM yyyy")}`,
+            text: title,
+            align: 'left',
         },
-        xAxis: {
-            categories: ["PAID", "CANCELLED", "PENDING_PAYMENT"],
+        subtitle: {
+            text: subtitle,
+            align: 'left',
         },
-        yAxis: {
-            min: 0,
-            title: {
-                text: "Number of Bookings",
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.y}</b>',
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                borderWidth: 2,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b><br>{point.y}',
+                    distance: 20,
+                },
             },
         },
         series: [
             {
-                name: "Bookings",
-                data: [
-                    100,
-                    bookingsData.filter((b) => b.status === "CANCELLED").length,
-                    bookingsData.filter((b) => b.status === "PENDING_PAYMENT").length,
-                ],
+                enableMouseTracking: false,
+                animation: {
+                    duration: 2000,
+                },
+                colorByPoint: true,
+                data,
             },
         ],
+        credits: {
+            enabled: false
+        }
     };
 
+    console.log(JSON.stringify(options))
     return (
-        <Box sx={{ padding: 3 }}>
-            <Typography variant="h4" gutterBottom>
-                Booking Dashboard
-            </Typography>
-
-            <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                    <LocalizationProvider dateAdapter={AdapterMoment}>
-
-                        <DatePicker
-                            label="Pilih Tarikh Pertandingan"
-                            value={selectedDate}
-                            onChange={(newDate) => setSelectedDate(newDate)}
-                            renderInput={(params) => <TextField {...params} fullWidth />}
-                        />
-                    </LocalizationProvider>
-
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                    <Typography variant="h6">Total Amount: RM {totalAmount}</Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                    <HighchartsReact highcharts={Highcharts} options={chartOptions} />
-                </Grid>
-            </Grid>
-        </Box>
+        <div>
+            <HighchartsReact
+                highcharts={Highcharts}
+                options={options}
+            />
+        </div>
     );
 };
 
-export default Dashboard;
+export default PieChart;

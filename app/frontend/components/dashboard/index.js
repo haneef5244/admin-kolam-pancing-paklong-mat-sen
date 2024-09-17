@@ -7,12 +7,16 @@ import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BarChart } from '../charts/barchart';
 import Highcharts, { dateFormat } from "highcharts";
+import PieChart from '../charts/donut';
+import { getAvailableAndUnavailablePancang } from '@/app/backend/actions/pancang';
 
 export const Dashboard = ({ pertandingans }) => {
 
     const [selectedDate, setSelectedDate] = useState(pertandingans?.length ? moment(pertandingans?.[0]?.tarikh) : null);
     const paymentStatuses = ['PAID', 'PENDING_PAYMENT'];
     const [bookingData, setBookingData] = useState([]);
+    const [pancangChartData, setPancangChartData] = useState([]);
+    const [totalPancang, setTotalPancang] = useState(0);
 
     const disableDates = useMemo(() => {
         return (date) => pertandingans?.filter(pertandingan => moment(pertandingan.tarikh).startOf('day').isSame(moment(date).startOf('day'))).length == 0;
@@ -26,8 +30,20 @@ export const Dashboard = ({ pertandingans }) => {
 
     }
 
+    const getPancangData = async () => {
+        if (selectedDate) {
+            const data = await getAvailableAndUnavailablePancang(selectedDate);
+            let pieData = [];
+            pieData.push({ name: 'Jumlah Pancang Terbuka', y: data?.available })
+            pieData.push({ name: 'Jumlah Pancang Ditempah', y: data?.unavailable })
+            setPancangChartData(pieData)
+            setTotalPancang(Number(data?.available) + Number(data?.unavailable))
+        }
+    }
+
     useEffect(() => {
         getPertandingans();
+        getPancangData();
     }, [selectedDate]);
 
     if (!selectedDate) return <Box padding={3} textAlign={'center'}>
@@ -126,7 +142,10 @@ export const Dashboard = ({ pertandingans }) => {
                         />
                     </LocalizationProvider>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} pb={2}>
+                    {pancangChartData?.length ? <PieChart title={`Jumlah Keseluruhan Pancang : ${totalPancang}`} subtitle={`Data setakat ${moment().format('DD/MM/YYYY HH:mm:SS')}`} data={pancangChartData} /> : <></>}
+                </Grid>
+                <Grid item xs={12} pb={2}>
                     <BarChart
                         chart={{
                             type: "column",
@@ -141,7 +160,7 @@ export const Dashboard = ({ pertandingans }) => {
                             },
                         }}
                         title={{
-                            text: `Amaun untuk Tarikh Pertandingan ${moment(selectedDate).format("DD MMM yyyy")} Setakat Ini`
+                            text: `Amaun Pendapatan untuk Tarikh Pertandingan ${moment(selectedDate).format("DD MMM yyyy")} Setakat Ini`
                         }}
                         series={[
                             {
@@ -149,12 +168,15 @@ export const Dashboard = ({ pertandingans }) => {
                                 data: getSeriesData,
                             },
                         ]}
+                        credits={{
+                            enabled: false
+                        }}
                     />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} pb={2}>
                     <BarChart
                         title={{
-                            text: 'Jumlah Amaun (RM) Harian Mengikut Status Pembayaran'
+                            text: 'Jumlah Amaun (RM) Harian Mengikut Status'
                         }}
                         xAxis={{
                             categories: transformLineSeriesData.categories,
@@ -183,13 +205,15 @@ export const Dashboard = ({ pertandingans }) => {
                             align: 'right',
                             verticalAlign: 'middle'
                         }}
-
                         tooltip={{
                             formatter: function () {
                                 // Add series color dot and format the tooltip
                                 return `<b>${Highcharts.dateFormat('%Y-%m-%d', this.x)}</b><br/>` +
                                     `<span style="color:${this.series.color}">\u25CF</span> ${this.series.name}: ${this.y}`;
                             }
+                        }}
+                        credits={{
+                            enabled: false
                         }}
                     />
                 </Grid>
@@ -232,6 +256,9 @@ export const Dashboard = ({ pertandingans }) => {
                                 return `<b>${Highcharts.dateFormat('%Y-%m-%d', this.x)}</b><br/>` +
                                     `<span style="color:${this.series.color}">\u25CF</span> ${this.series.name}: ${this.y}`;
                             }
+                        }}
+                        credits={{
+                            enabled: false
                         }}
                     />
                 </Grid>

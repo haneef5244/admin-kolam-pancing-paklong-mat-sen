@@ -1,13 +1,17 @@
+'use client';
 import HighchartsReact from 'highcharts-react-official';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Highcharts from "highcharts";
-Highcharts.setOptions({
-    global: {
-        useUTC: false
-    }
-});
+
 
 export const BarChart = (props) => {
+    useEffect(() => {
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+    }, [])
     const chartOptions = {
         ...props
     };

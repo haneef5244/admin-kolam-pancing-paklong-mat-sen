@@ -86,6 +86,9 @@ export async function POST(req) {
             'is_deposit': true,
             'deposit_amount': true,
             'manual_receipts': true,
+        },
+        orderBy: {
+            'id': 'desc'
         }
     })
 

@@ -2,6 +2,7 @@
 
 import { Prisma } from "@prisma/client";
 import prisma from "../../helpers/prisma";
+import moment from "moment";
 
 export const createManualBooking = async (kolamId, tarikh, calculatedObj, namaPenuh, email, telefon, isDeposit, depositAmount, voucher) => {
     try {
@@ -88,4 +89,38 @@ export const createManualBooking = async (kolamId, tarikh, calculatedObj, namaPe
         throw e;
     }
 
+}
+
+export const getAllBookingsByPertandinganDate = async (date) => {
+    return await prisma.kolam_booking.findMany({
+        where: {
+            tarikh: moment(date).toISOString(),
+        },
+        select: {
+            'amount': true,
+            'payment_status': true,
+            'tarikh': true,
+            'deposit_amount': true,
+            'is_manual': true,
+            'kolam_id': true,
+            'created_on': true,
+            'is_deposit': true,
+            'manual_booking': {
+                select: {
+                    'nama_penuh': true,
+                    'email': true,
+                    'telefon': true,
+                }
+            },
+            'created_on': true,
+            'pancangs': {
+                select: {
+                    'nombor': true,
+                }
+            },
+        },
+        orderBy: {
+            created_on: 'asc'
+        }
+    })
 }

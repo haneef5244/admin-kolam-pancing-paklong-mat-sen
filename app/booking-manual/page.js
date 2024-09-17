@@ -2,7 +2,9 @@ export const revalidate = 1; // Revalidate every second
 
 import React from 'react'
 import { getAllPertandingan } from '../backend/actions/pertandingan';
-import BookingManualComponent from '../frontend/components/bookingManual';
+import dynamic from 'next/dynamic';
+const BookingManualComponent = dynamic(() => import('../frontend/components/bookingManual'), { ssr: false });
+
 
 const BookingManual = async props => {
     const data = await getAllPertandingan();

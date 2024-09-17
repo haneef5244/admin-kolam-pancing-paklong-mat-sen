@@ -1,4 +1,5 @@
 'use server';
+import moment from "moment";
 import prisma from "../../helpers/prisma"
 
 export const getAvailablePancang = async (kolamId, tarikh) => {
@@ -22,4 +23,27 @@ export const getAvailablePancang = async (kolamId, tarikh) => {
             'is_available': true,
         }
     })
+}
+
+export const getAvailableAndUnavailablePancang = async (tarikh) => {
+    const unavailable = await prisma.booking_availability.count({
+        where: {
+            'is_available': false,
+            tarikh: moment(tarikh).toISOString(),
+            pancang: {
+                is_available: true,
+                is_deleted: false
+            }
+        }
+    })
+    const available = await prisma.pancang.count({
+        where: {
+            is_available: true,
+            is_deleted: false,
+        }
+    })
+    return {
+        available: Number(available) - Number(unavailable),
+        unavailable,
+    }
 }

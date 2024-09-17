@@ -2,6 +2,8 @@ import "./globals.css";
 import { Lato } from "next/font/google";
 import { Providers } from "./providers";
 import Header from "./frontend/components/header";
+import { Suspense } from "react";
+import Loading from "@/loading";
 
 const lato = Lato({
   weight: '400',
@@ -30,7 +32,9 @@ export default function RootLayout({ children }) {
       <body className={lato.className}>
         <Providers font={lato}>
           <Header />
-          {children}
+          <Suspense fallback={<Loading />}>
+            {children}
+          </Suspense>
         </Providers>
       </body>
     </html>

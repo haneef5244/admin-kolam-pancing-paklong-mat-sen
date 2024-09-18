@@ -18,6 +18,8 @@ import { saveAs } from 'file-saver'
 import { getQR } from '../backend/actions/booking/get-qr';
 import { pdf } from '@react-pdf/renderer'
 import DialogEditDeposit from '../frontend/components/dialogEditDeposit';
+import { getFirstTenEmails, getFirstTenNamaPengguna, getFirstTenTelefon } from '../backend/actions/user';
+import SelectText from '../frontend/components/multipleSelectTextFieldChip';
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -120,6 +122,9 @@ const BookingPengguna = props => {
         bookingId: '',
         paymentStatus: [],
         kolam: [],
+        namaPengguna: '',
+        email: '',
+        telefon: '',
         tarikh: null,
     });
     const [loadingTable, setLoadingTable] = useState(false);
@@ -138,6 +143,10 @@ const BookingPengguna = props => {
 
     const [openDialogEditDeposit, setOpenDialogEditDeposit] = useState(false);
     const [openDialogEditDepositBooking, setOpenDialogEditDepositBooking] = useState(false);
+
+    const [namaPenggunaOptions, setNamaPenggunaOptions] = useState([]);
+    const [emailOptions, setEmailOptions] = useState([]);
+    const [telefonOptions, setTelefonOptions] = useState([]);
 
     const handleDownloadReceipt = async (d) => {
 
@@ -219,9 +228,14 @@ const BookingPengguna = props => {
 
     }
 
-    const getData = async (applyFilter) => {
+    const isApplyFilter = () => {
+        return filterProps?.bookingId || filterProps?.paymentStatus?.length || filterProps?.kolam?.length || filterProps?.namaPengguna
+            || filterProps?.email || filterProps?.telefon || filterProps?.tarikh
+    }
+
+    const getData = async () => {
         let newFilterProps = { ...filterProps, paymentStatus: filterProps?.paymentStatus.map(e => e == 'PENDING PAYMENT' ? 'PENDING_PAYMENT' : e) }
-        getAllBookings(applyFilter ? newFilterProps : {}).then(async resp => {
+        getAllBookings(isApplyFilter() ? newFilterProps : {}).then(async resp => {
             setLoadingTable(true);
             const message = await resp?.json()
             const newData = [];
@@ -302,7 +316,7 @@ const BookingPengguna = props => {
                     value: d?.payment_status == 'PAID' ? <Button startIcon={<Download />} variant='outlined' onClick={() => handleDownloadReceipt(d)}>Muat turun resit</Button> : <></>
                 })
                 colData.push({
-                    props: { sx: { minWidth: 300, } },
+                    props: { sx: { minWidth: 300, textAlign: 'center' } },
                     value: d?.is_manual ? <Grid container rowSpacing={2}>
                         {d?.manual_receipts.map(e => <Grid item xs={12}>
                             <Chip onClick={() => handleClickManualReceipt(e?.receipt)} label={e?.receipt} onDelete={() => handleDeleteReceipt(d, e?.receipt)} />
@@ -370,6 +384,63 @@ const BookingPengguna = props => {
             kolam: typeof value === 'string' ? value.split(',') : value,
         })
     };
+
+    const handleChangeNamaPengguna = async e => {
+        const data = JSON.parse(await getFirstTenNamaPengguna(e?.target?.value));
+        setNamaPenggunaOptions(data);
+    }
+
+    const handleChangeEmail = async e => {
+        const data = JSON.parse(await getFirstTenEmails(e?.target?.value));
+        setEmailOptions(data);
+    }
+
+    const handleChangeTelefon = async e => {
+        const data = JSON.parse(await getFirstTenTelefon(e?.target?.value));
+        setTelefonOptions(data);
+    }
+
+    const handleOnSelectNamaPengguna = (e, value) => {
+        if (value) {
+            setFilterProps({
+                ...filterProps,
+                namaPengguna: value?.nama_penuh
+            })
+        } else {
+            setFilterProps({
+                ...filterProps,
+                namaPengguna: ''
+            })
+        }
+    }
+
+    const handleOnSelectEmail = (e, value) => {
+        if (value) {
+            setFilterProps({
+                ...filterProps,
+                email: value?.email
+            })
+        } else {
+            setFilterProps({
+                ...filterProps,
+                email: ''
+            })
+        }
+    }
+
+    const handleOnSelectTelefon = (e, value) => {
+        if (value) {
+            setFilterProps({
+                ...filterProps,
+                telefon: value?.telefon
+            })
+        } else {
+            setFilterProps({
+                ...filterProps,
+                telefon: ''
+            })
+        }
+    }
 
     const handleChangeTarikh = val => {
         setFilterProps({
@@ -451,6 +522,15 @@ const BookingPengguna = props => {
                                         <LocalizationProvider dateAdapter={AdapterMoment}>
                                             <DatePicker value={filterProps?.tarikh} onChange={handleChangeTarikh} sx={{ width: 250 }} format='DD/MM/YYYY' label="Tarikh Pancing" />
                                         </LocalizationProvider>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={'auto'} lg={'auto'}>
+                                        <SelectText options={namaPenggunaOptions} textLabel="Nama Pengguna" onChange={handleChangeNamaPengguna} labelKey={'nama_penuh'} onSelect={handleOnSelectNamaPengguna} />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={'auto'} lg={'auto'}>
+                                        <SelectText options={emailOptions} textLabel="Email" onChange={handleChangeEmail} labelKey={'email'} onSelect={handleOnSelectEmail} />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={'auto'} lg={'auto'}>
+                                        <SelectText options={telefonOptions} textLabel="Telefon" onChange={handleChangeTelefon} labelKey={'telefon'} onSelect={handleOnSelectTelefon} />
                                     </Grid>
                                 </Grid>
 

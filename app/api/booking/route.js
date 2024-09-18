@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
     const body = await req.json();
 
-    const { bookingId = undefined, paymentStatus = [], kolam = [], tarikh = undefined } = body;
+    const { bookingId = undefined, paymentStatus = [], kolam = [], tarikh = undefined, namaPengguna, email, telefon } = body;
 
     let filterWhere = {}
 
@@ -40,6 +40,97 @@ export async function POST(req) {
                 gte: tarik,
                 lte: endOfTarik
             }
+        }
+    }
+    if (namaPengguna) {
+        let splitNama = namaPengguna.split(' ');
+        let splitNamaOr = []
+        for (let name of splitNama) {
+            splitNamaOr.push({
+                user: {
+                    nama_pertama: {
+                        contains: name.trim(),
+                        mode: 'insensitive'
+                    }
+                }
+            })
+            splitNamaOr.push({
+                user: {
+                    nama_akhir: {
+                        contains: name.trim(),
+                        mode: 'insensitive'
+                    }
+                }
+            })
+        }
+        filterWhere = {
+            ...filterWhere,
+            AND: {
+                OR: [
+                    {
+                        manual_booking: {
+                            'nama_penuh': {
+                                contains: namaPengguna.toLowerCase(),
+                                mode: 'insensitive'
+                            }
+                        }
+                    },
+                    ...splitNamaOr
+                ]
+            }
+
+        }
+    }
+    if (email) {
+        filterWhere = {
+            ...filterWhere,
+            AND: {
+                OR: [
+                    {
+                        manual_booking: {
+                            'email': {
+                                contains: email.toLowerCase(),
+                                mode: 'insensitive'
+                            }
+                        }
+                    },
+                    {
+                        user: {
+                            'email': {
+                                contains: email.toLowerCase(),
+                                mode: 'insensitive'
+                            }
+                        }
+                    }
+                ]
+            }
+
+        }
+    }
+    if (telefon) {
+        filterWhere = {
+            ...filterWhere,
+            AND: {
+                OR: [
+                    {
+                        manual_booking: {
+                            'telefon': {
+                                contains: telefon.toLowerCase(),
+                                mode: 'insensitive'
+                            }
+                        }
+                    },
+                    {
+                        user: {
+                            'telefon': {
+                                contains: telefon.toLowerCase(),
+                                mode: 'insensitive'
+                            }
+                        }
+                    }
+                ]
+            }
+
         }
     }
     const resp = await prisma.kolam_booking.findMany({

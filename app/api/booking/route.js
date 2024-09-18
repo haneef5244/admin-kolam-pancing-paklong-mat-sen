@@ -42,6 +42,7 @@ export async function POST(req) {
             }
         }
     }
+    let AND = [];
     if (namaPengguna) {
         let splitNama = namaPengguna.split(' ');
         let splitNamaOr = []
@@ -63,79 +64,68 @@ export async function POST(req) {
                 }
             })
         }
-        filterWhere = {
-            ...filterWhere,
-            AND: {
-                OR: [
-                    {
-                        manual_booking: {
-                            'nama_penuh': {
-                                contains: namaPengguna.toLowerCase(),
-                                mode: 'insensitive'
-                            }
+        AND.push({
+            OR: [
+                {
+                    manual_booking: {
+                        'nama_penuh': {
+                            contains: namaPengguna.toLowerCase(),
+                            mode: 'insensitive'
                         }
-                    },
-                    ...splitNamaOr
-                ]
-            }
-
-        }
+                    }
+                },
+                ...splitNamaOr
+            ]
+        })
     }
     if (email) {
-        filterWhere = {
-            ...filterWhere,
-            AND: {
-                OR: [
-                    {
-                        manual_booking: {
-                            'email': {
-                                contains: email.toLowerCase(),
-                                mode: 'insensitive'
-                            }
-                        }
-                    },
-                    {
-                        user: {
-                            'email': {
-                                contains: email.toLowerCase(),
-                                mode: 'insensitive'
-                            }
+        AND.push({
+            OR: [
+                {
+                    manual_booking: {
+                        'email': {
+                            contains: email.toLowerCase(),
+                            mode: 'insensitive'
                         }
                     }
-                ]
-            }
-
-        }
+                },
+                {
+                    user: {
+                        'email': {
+                            contains: email.toLowerCase(),
+                            mode: 'insensitive'
+                        }
+                    }
+                }
+            ]
+        })
     }
     if (telefon) {
-        filterWhere = {
-            ...filterWhere,
-            AND: {
-                OR: [
-                    {
-                        manual_booking: {
-                            'telefon': {
-                                contains: telefon.toLowerCase(),
-                                mode: 'insensitive'
-                            }
-                        }
-                    },
-                    {
-                        user: {
-                            'telefon': {
-                                contains: telefon.toLowerCase(),
-                                mode: 'insensitive'
-                            }
+        AND.push({
+            OR: [
+                {
+                    manual_booking: {
+                        'telefon': {
+                            contains: telefon.toLowerCase(),
+                            mode: 'insensitive'
                         }
                     }
-                ]
-            }
-
-        }
+                },
+                {
+                    user: {
+                        'telefon': {
+                            contains: telefon.toLowerCase(),
+                            mode: 'insensitive'
+                        }
+                    }
+                }
+            ]
+        })
     }
     const resp = await prisma.kolam_booking.findMany({
         where: {
-            ...filterWhere
+            ...filterWhere,
+            AND
         },
         select: {
             'id': true,

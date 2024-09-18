@@ -24,7 +24,7 @@ export const Dashboard = ({ pertandingans }) => {
 
     const getPertandingans = async () => {
         if (selectedDate) {
-            const data = await getAllBookingsByPertandinganDate(selectedDate);
+            const data = JSON.parse(await getAllBookingsByPertandinganDate(selectedDate));
             setBookingData(data);
         }
 
@@ -32,7 +32,7 @@ export const Dashboard = ({ pertandingans }) => {
 
     const getPancangData = async () => {
         if (selectedDate) {
-            const data = await getAvailableAndUnavailablePancang(selectedDate);
+            const data = JSON.parse(await getAvailableAndUnavailablePancang(selectedDate));
             let pieData = [];
             pieData.push({ name: 'Jumlah Pancang Terbuka', y: data?.available })
             pieData.push({ name: 'Jumlah Pancang Ditempah', y: data?.unavailable })

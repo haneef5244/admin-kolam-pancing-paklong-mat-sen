@@ -42,8 +42,8 @@ export const getAvailableAndUnavailablePancang = async (tarikh) => {
             is_deleted: false,
         }
     })
-    return {
+    return JSON.stringify({
         available: Number(available) - Number(unavailable),
         unavailable,
-    }
+    })
 }

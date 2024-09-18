@@ -92,7 +92,7 @@ export const createManualBooking = async (kolamId, tarikh, calculatedObj, namaPe
 }
 
 export const getAllBookingsByPertandinganDate = async (date) => {
-    return await prisma.kolam_booking.findMany({
+    return JSON.stringify(await prisma.kolam_booking.findMany({
         where: {
             tarikh: moment(date).toISOString(),
         },
@@ -122,5 +122,5 @@ export const getAllBookingsByPertandinganDate = async (date) => {
         orderBy: {
             created_on: 'asc'
         }
-    })
+    }))
 }

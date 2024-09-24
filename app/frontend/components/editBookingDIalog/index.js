@@ -71,8 +71,7 @@ const EditBookingDialog = ({ data, handleSubmitSuccess, handleClose }) => {
 
     const isValidSubmission = () => {
         let isValid = true;
-        if (tempData?.kolam_booking_kolams.length == 0) {
-            setPancangYangDitempahError('Tiada pancang yang ditempah, jika anda ingin buang semua tempahan, sila klik butang merah untuk buang tempahan.')
+        if (tempData?.kolam_booking_kolams.length == 0 && pancangToAdd.length == 0) {
             isValid = false;
         }
         let newPancangToAdd = [...pancangToAdd];

@@ -49,6 +49,7 @@ export async function POST(req) {
     const resp = await prisma.kolam_booking.update({
         where: {
             id: id ? Number(id) : null,
+            is_deleted: false
         },
         data: {
             manual_receipts: {

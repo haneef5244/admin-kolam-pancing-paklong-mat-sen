@@ -1,5 +1,5 @@
 'use client';
-import { Alert, Box, Button, ButtonGroup, Card, CardContent, Chip, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Snackbar, TextField, Typography, styled } from '@mui/material';
+import { Alert, Box, Button, ButtonGroup, Card, CardContent, Chip, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Snackbar, TextField, Tooltip, Typography, styled } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import BasicTable from '../frontend/components/basicTable';
 import { deleteReceiptForBooking, getAllBookings, getReceiptForBooking, updateDepositForBooking, updateReceiptForBooking } from '../frontend/services/booking';
@@ -12,7 +12,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LoadingButton } from '@mui/lab';
-import { CloudUpload, Delete, Discount, Download, Edit, Receipt, Upload } from '@mui/icons-material';
+import { CloudUpload, Delete, DeleteOutlined, Discount, Download, Edit, EditOutlined, Receipt, RemoveOutlined, Upload } from '@mui/icons-material';
 import GenerateInvoice from '../frontend/components/invoice';
 import { saveAs } from 'file-saver'
 import { getQR } from '../backend/actions/booking/get-qr';
@@ -20,6 +20,8 @@ import { pdf } from '@react-pdf/renderer'
 import DialogEditDeposit from '../frontend/components/dialogEditDeposit';
 import { getFirstTenEmails, getFirstTenNamaPengguna, getFirstTenTelefon } from '../backend/actions/user';
 import SelectText from '../frontend/components/multipleSelectTextFieldChip';
+import EditBookingDIalog from '../frontend/components/editBookingDIalog';
+import { deleteBooking } from '../backend/actions/booking';
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -42,8 +44,8 @@ const generateHeaders = () => {
             value: 'Id'
         },
         {
-            props: {},
-            value: 'Kolam'
+            props: { sx: { width: 250, textAlign: 'center' } },
+            value: 'Kolam/Pancang'
         },
         {
             props: {},
@@ -51,14 +53,10 @@ const generateHeaders = () => {
         },
         {
             props: {},
-            value: 'Pancang'
-        },
-        {
-            props: {},
             value: 'Add Ons'
         },
         {
-            props: {},
+            props: { sx: { minWidth: '150px', textAlign: 'center' } },
             value: 'Baucar',
         },
         {
@@ -96,6 +94,10 @@ const generateHeaders = () => {
         {
             props: { sx: { width: 300, textAlign: 'center' } },
             value: 'Muat Naik Resit Pembayaran Manual'
+        },
+        {
+            props: { sx: { width: 300, textAlign: 'center' } },
+            value: 'Tindakan'
         }
     ]
 }
@@ -147,17 +149,23 @@ const BookingPengguna = props => {
     const [namaPenggunaOptions, setNamaPenggunaOptions] = useState([]);
     const [emailOptions, setEmailOptions] = useState([]);
     const [telefonOptions, setTelefonOptions] = useState([]);
+    const [editBookingProps, setEditBookingProps] = useState({ open: false });
 
     const handleDownloadReceipt = async (d) => {
 
         let sasUrl = await getQR(d?.user?.id, d?.id, d?.tarikh, d?.qr_link_file_name);
         let items = []
-        for (let p of d?.pancangs ?? []) {
-            items.push({
-                description: `Pancang ${p?.nombor}`,
-                price: 'RM 90'
-            })
+
+        let kolams = Object.keys(d?.kolam_bookings);
+        for (let kolam of kolams) {
+            for (let pancang of d?.kolam_bookings[kolam]) {
+                items.push({
+                    description: `Kolam ${kolam} - Pancang ${pancang}`,
+                    price: 'RM 90'
+                })
+            }
         }
+
         for (let ao of d?.add_ons ?? []) {
             if (ao?.quantity) {
                 items.push({
@@ -228,6 +236,89 @@ const BookingPengguna = props => {
 
     }
 
+    const handleClickEditBooking = (booking) => {
+        setEditBookingProps({
+            ...booking,
+            open: true,
+            onClose: handleCloseEdit
+        })
+    }
+
+    const handleEditSuccess = async () => {
+        setSnackbarProps({
+            open: true,
+            severity: 'success',
+            message: 'Tempahan berjaya dikemaskini!'
+        })
+        setEditBookingProps({
+            open: false
+        })
+        await getData()
+    }
+
+    const handleCloseEdit = () => {
+        setEditBookingProps({
+            open: false,
+        })
+    }
+
+    const handleRemoveBooking = async data => {
+        deleteBooking(data?.id).then(async res => {
+            setSnackbarProps({
+                'severity': 'success',
+                'open': true,
+                'message': 'Tempahan telah dibuang.'
+            })
+            setDialogProps({})
+            setOpenDialog(false)
+            await getData();
+        }).catch(e => {
+            setSnackbarProps({
+                'severity': 'error',
+                'open': true,
+                'message': e.message
+            })
+        })
+    }
+
+    const handleClickRemoveBooking = (data) => {
+        setOpenDialog(true);
+        setDialogProps({
+            title: 'Anda Setuju Untuk Buang Tempahan Ini?',
+            content: <Grid container>
+                <Grid container>
+                    <Grid item xs={12}><Typography fontWeight={'bold'}>ID</Typography></Grid>
+                    <Grid item xs={12}><Typography>{data?.id}</Typography></Grid>
+                </Grid>
+                <Grid container pt={2}>
+                    <Grid item xs={12}><Typography fontWeight={'bold'}>Tarikh Pancing</Typography></Grid>
+                    <Grid item xs={12}><Typography>{moment(data?.tarikh).format('Do MMM YYYY')}</Typography></Grid>
+                </Grid>
+                <Grid container pt={2}>
+                    <Grid item xs={12}><Typography fontWeight={'bold'}>Nama Pengguna</Typography></Grid>
+                    <Grid item xs={12}><Typography>{data?.is_manual ? data?.manual_booking?.nama_penuh : `${data?.nama_pertama} ${data?.nama_ahkir}`}</Typography></Grid>
+                    <Grid item xs={12}><Typography>{data?.is_manual ? data?.manual_booking?.email : `${data?.email}`}</Typography></Grid>
+                    <Grid item xs={12}><Typography>{data?.is_manual ? data?.manual_booking?.telefon : `${data?.telefon}`}</Typography></Grid>
+                </Grid>
+                <Grid container pt={1}>
+                    <Grid container columnSpacing={1} rowSpacing={1} pt={2}>
+                        {Object.keys(data?.kolam_bookings).map(e => <Grid item xs={12}>
+                            <Grid container rowSpacing={1} columnSpacing={1}>
+                                <Grid item xs={12}>
+                                    <Typography fontWeight={'bold'}>Kolam {e}</Typography>
+                                </Grid>
+                                <Grid item xs="auto">
+                                    {data?.kolam_bookings[e]?.map(p => <Chip label={`Kolam ${e} - ${p}`} />)}
+                                </Grid>
+                            </Grid>
+                        </Grid>)}
+                    </Grid>
+                </Grid>
+            </Grid>,
+            onOk: () => handleRemoveBooking(data)
+        })
+    }
+
     const isApplyFilter = () => {
         return filterProps?.bookingId || filterProps?.paymentStatus?.length || filterProps?.kolam?.length || filterProps?.namaPengguna
             || filterProps?.email || filterProps?.telefon || filterProps?.tarikh
@@ -238,7 +329,7 @@ const BookingPengguna = props => {
         getAllBookings(isApplyFilter() ? newFilterProps : {}).then(async resp => {
             setLoadingTable(true);
             const message = await resp?.json()
-            const newData = [];
+            const newData = []
             for (let d of message?.data) {
                 let colData = []
                 colData.push({
@@ -246,20 +337,27 @@ const BookingPengguna = props => {
                     value: d?.id
                 })
                 colData.push({
-                    props: {},
-                    value: d?.kolam_id
+                    props: { sx: { minWidth: '200px', textAlign: 'center' } },
+                    value: <Grid container rowSpacing={2}>
+                        {Object.keys(d?.kolam_bookings).map(key => <Grid item xs={12}>
+                            <Grid container rowSpacing={2} display={'flex'} alignItems={'center'} justifyContent={'center'}>
+                                <Grid item xs={12}>
+                                    Kolam {key}
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Grid container columnSpacing={1} rowSpacing={1} display={'flex'} justifyContent={'center'} alignItems={'center'}>
+                                        {d?.kolam_bookings[key].map(pancang => <Grid item xs="auto">
+                                            <Chip label={pancang} />
+                                        </Grid>)}
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Grid>)}
+                    </Grid>
                 })
                 colData.push({
                     props: { sx: { minWidth: '200px' } },
                     value: moment(d?.tarikh).format('Do MMMM YYYY')
-                })
-                colData.push({
-                    props: { sx: { minWidth: '200px' } },
-                    value: <Grid container columnSpacing={2} rowSpacing={2}>
-                        {d?.pancangs?.map(pancang => <Grid item xs="auto">
-                            <Chip label={pancang?.nombor} />
-                        </Grid>)}
-                    </Grid>
                 })
                 colData.push({
                     props: { sx: { minWidth: '200px' } },
@@ -270,8 +368,8 @@ const BookingPengguna = props => {
                     </Grid>
                 })
                 colData.push({
-                    props: { sx: { minWidth: '150px' } },
-                    value: d?.voucher?.code ? <Chip size='medium' sx={{ background: green[600], color: '#ffffff', }} label={<Typography fontWeight={'bold'}>{d?.voucher?.code}</Typography>} icon={<Discount color='#ffffff' />} /> : ''
+                    props: { sx: { minWidth: '150px', textAlign: 'center' } },
+                    value: d?.voucher?.code ? <Chip size='medium' sx={{ background: green[600], color: '#ffffff', display: 'flex', alignItems: 'center' }} label={<Typography fontWeight={'bold'}>{d?.voucher?.code}</Typography>} icon={<Discount color='#ffffff' />} /> : ''
                 })
                 colData.push({
                     props: { sx: { minWidth: '150px' } },
@@ -339,6 +437,25 @@ const BookingPengguna = props => {
                             </LoadingButton>
                         </Grid>
                     </Grid> : <></>
+                })
+                colData.push({
+                    props: { sx: { minWidth: 300, textAlign: 'center' } },
+                    value: <Grid container justifyContent={'center'} columnSpacing={1}>
+                        <Grid item xs="auto">
+                            <Tooltip title="Kemaskini Tempahan">
+                                <Button onClick={() => handleClickEditBooking(d)} sx={{ background: yellow[700], ':hover': { background: yellow[800] } }} variant='contained'>
+                                    <EditOutlined />
+                                </Button>
+                            </Tooltip>
+                        </Grid>
+                        <Grid item xs="auto">
+                            <Tooltip title="Buang Tempahan">
+                                <Button onClick={() => handleClickRemoveBooking(d)} sx={{ background: red[500], ':hover': { background: red[800] } }} variant='contained'>
+                                    <DeleteOutlined />
+                                </Button>
+                            </Tooltip>
+                        </Grid>
+                    </Grid>
                 })
                 newData.push(colData);
             }
@@ -588,6 +705,7 @@ const BookingPengguna = props => {
                 </Alert>
             </Snackbar> : <></>}
         </Grid>
+        {editBookingProps?.open ? <EditBookingDIalog data={editBookingProps} handleSubmitSuccess={() => handleEditSuccess()} handleClose={() => setEditBookingProps({})} /> : <></>}
     </Container>
 }
 

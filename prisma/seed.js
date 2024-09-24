@@ -59,40 +59,82 @@ async function main() {
     //         },
     //     ]
     // })
-    const pancang = await prisma.products.findFirst({
-        where: {
-            label: 'Pancang'
-        },
-        select: {
-            'id': true
-        }
-    })
+    // const pancang = await prisma.products.findFirst({
+    //     where: {
+    //         label: 'Pancang'
+    //     },
+    //     select: {
+    //         'id': true
+    //     }
+    // })
 
-    const resp = await prisma.vouchers.create({
-        data: {
-            code: 'OKU_50%_OFF',
-            percentage_off: 0.5,
-            starts_on: new Date().toISOString(),
-            expires_on: new Date('9999-01-01').toISOString(),
-        },
+    // const resp = await prisma.vouchers.create({
+    //     data: {
+    //         code: 'OKU_50%_OFF',
+    //         percentage_off: 0.5,
+    //         starts_on: new Date().toISOString(),
+    //         expires_on: new Date('9999-01-01').toISOString(),
+    //     },
+    //     select: {
+    //         'id': true
+    //     }
+    // });
+
+    // await prisma.vouchers.update({
+    //     where: {
+    //         id: Number(resp?.id)
+    //     },
+    //     data: {
+    //         products: {
+    //             connect: [
+    //                 {
+    //                     id: pancang.id
+    //                 }
+    //             ]
+    //         }
+    //     }
+    // })
+
+    const existingKolamBookings = await prisma.kolam_booking.findMany({
         select: {
-            'id': true
+            'kolam_id': true,
+            'pancangs': {
+                select: {
+                    'nombor': true
+                }
+            },
+            'id': true,
         }
     });
 
-    await prisma.vouchers.update({
-        where: {
-            id: Number(resp?.id)
-        },
-        data: {
-            products: {
-                connect: [
-                    {
-                        id: pancang.id
-                    }
-                ]
-            }
+    console.log(existingKolamBookings[0])
+
+    const pancangs = await prisma.pancang.findMany({
+        select: {
+            'id': true,
+            'value': true,
         }
+    })
+
+    let pancangValueToIdObj = {}
+
+    for (let p of pancangs) {
+        pancangValueToIdObj[p?.value] = p.id
+    }
+
+    let dataToUpdate = [];
+
+    for (let booking of existingKolamBookings) {
+        for (let p of booking?.pancangs) {
+            dataToUpdate.push({
+                kolam_booking_id: booking?.id,
+                kolam_booking_pancang_id: pancangValueToIdObj[p?.nombor],
+                kolam_id: booking.kolam_id
+            })
+        }
+    }
+    await prisma.kolam_booking_kolams.createMany({
+        data: dataToUpdate
     })
 }
 

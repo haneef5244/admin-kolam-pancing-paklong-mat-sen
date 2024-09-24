@@ -3,6 +3,17 @@
 import prisma from "@/app/backend/helpers/prisma";
 
 export const calculate = async (products, voucher) => {
+    const pancangKolam = await prisma.pancang.findMany({
+        where: {
+            value: {
+                in: products?.filter(product => product?.name == 'PANCANG').map(product => product?.label)
+            }
+        },
+        select: {
+            'value': true,
+            'kolam_id': true
+        }
+    })
     const productDetails = await prisma.products.findMany({
         where: {
             name: {
@@ -20,6 +31,9 @@ export const calculate = async (products, voucher) => {
     let total = 0;
     let totalDiscounted = 0;
     for (let p of products) {
+        if (p?.name == 'PANCANG') {
+            p.kolam_id = pancangKolam.filter(e => e?.value == p?.label)?.[0]?.kolam_id;
+        }
         const pp = productDetails?.filter(e => e?.name == p?.name)?.[0];
 
         if (voucher) {

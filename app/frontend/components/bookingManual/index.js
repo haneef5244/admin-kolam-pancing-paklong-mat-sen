@@ -3,11 +3,11 @@
 import { Alert, Box, Button, Card, CardContent, CardMedia, Container, Dialog, DialogContent, DialogTitle, Divider, Grid, Snackbar, Step, StepLabel, Stepper, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import PilihPertandingan from '../pilihPertandingan';
 import PondLayout from '../pondLayout';
 import MaklumatBookingManual from '../maklumatBookingManual';
-import { getAvailablePancang } from '@/app/backend/actions/pancang';
+import { getAvailablePancang, getKolamsFromPancang, getPancangData } from '@/app/backend/actions/pancang';
 import { useRouter } from 'next/navigation';
 import KolamPancang from '../kolamPancang';
 import SimpleDialog from '../simpleDialog';
@@ -23,8 +23,11 @@ const BookingManualComponent = ({ data }) => {
 
     const [tarikhPertandingan, setTarikhPertandingan] = useState(null);
     const [kolamId, setKolamId] = useState(null);
+    const [kolamLabel, setKolamLabel] = useState('');
     const [leftPancangs, setLeftPancangs] = useState([]);
     const [rightPancangs, setRightPancangs] = useState([]);
+
+    const [kolamPancangSemakan, setKolamPancangSemakan] = useState({});
 
     const [bookedSlots, setBookedSlots] = useState([]);
     const [total, setTotal] = useState(0);
@@ -94,9 +97,6 @@ const BookingManualComponent = ({ data }) => {
             });
             setLeftPancangs(leftItems)
             setRightPancangs(rightItems)
-            setTotal(0);
-            setBookedSlots([]);
-            setActiveStep(2);
 
         } else {
 
@@ -112,7 +112,7 @@ const BookingManualComponent = ({ data }) => {
                 return
             }
         }
-        setActiveStep(3);
+        setActiveStep(2);
     }
 
     const handleChangeNamaPenuh = val => {
@@ -177,6 +177,58 @@ const BookingManualComponent = ({ data }) => {
         }
     }
 
+    const renderPancangSemakanView = useMemo(() => {
+        let allKolams = calculatedRespObj?.products?.filter(product => product.name == 'PANCANG');
+
+        let kolams = []
+        for (let k of allKolams ?? []) {
+            if (kolams.includes(k?.kolam_id)) {
+                continue
+            }
+            kolams.push(k?.kolam_id)
+        }
+        kolams.sort();
+        let kolamsComponent = [];
+        for (let kolam of kolams ?? []) {
+            kolamsComponent.push(<Grid item xs="12">
+                <Grid container>
+                    <Grid item xs={12}>
+                        <Typography fontWeight={'bold'}>Kolam {kolam}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Typography fontWeight={'bold'}>Pancang</Typography>
+                    </Grid>
+                    {calculatedRespObj?.products?.filter(product => product?.kolam_id == kolam)?.map(product => <Grid item xs="12">
+                        <Grid container justifyContent={'space-between'}>
+                            <Grid item xs="auto">
+                                {product?.label}
+                            </Grid>
+                            {product?.discountedPrice != product?.price ? <Grid item xs="auto">
+                                <Grid container columnSpacing={2}>
+                                    <Grid item xs="auto">
+                                        <Typography sx={{ textDecoration: 'line-through' }}>RM {product?.price}</Typography>
+                                    </Grid>
+                                    <Grid item xs="auto">
+                                        <Typography>RM {product?.discountedPrice}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Grid> : <Grid item xs="auto">
+                                RM {product?.price}
+                            </Grid>}
+                        </Grid>
+                    </Grid>)}
+                </Grid>
+
+
+            </Grid>)
+        }
+        return <Grid container justifyContent={'space-between'} rowSpacing={2}>
+            {kolamsComponent.map(component => component)}
+        </Grid>
+
+    }, [calculatedRespObj])
+
+
     const handleChangeIsDeposit = () => {
         if (isDeposit) {
             setDepositAmount(0);
@@ -212,30 +264,45 @@ const BookingManualComponent = ({ data }) => {
         return 0;
     }
 
+    const getKolams = async (val) => {
+        const data = JSON.parse(await getKolamsFromPancang(val));
+        setKolamLabel(data?.map(e => e?.kolam_id).join(','))
+    }
+
+    const handleChangePancang = (val) => {
+        getKolams(val);
+        setBookedSlots(val);
+    }
+
     const steps = [
         {
             title: 'Pilih Pertandingan',
             component: <PilihPertandingan data={data} onHandleSelect={e => handleSelectTarikhPertandingan(e)} />
         },
         {
-            title: 'Pilih Kolam',
-            component: <PondLayout handleOnClick={id => handleSelectKolam(id)} />
-        },
-        {
             title: 'Pilih Pancang & Add ons',
-            component: <KolamPancang
-                kolamId={kolamId}
-                tarikh={tarikhPertandingan}
-                leftPancangs={leftPancangs}
-                rightPancangs={rightPancangs}
-                bookedSlots={bookedSlots}
-                setBookedSlots={setBookedSlots}
-                total={total}
-                setTotal={setTotal}
-                handleNext={() => handleNextPancang()}
-                additionalProducts={additionalProducts}
-                setAdditionalProducts={setAdditionalProducts} />
+            component: <Grid container>
+                <Grid item xs={12} sm={12} md={4}>
+                    <PondLayout handleOnClick={id => handleSelectKolam(id)} />
+                </Grid>
+                <Grid item xs={12} sm={12} md={8}>
+                    <KolamPancang
+                        kolamId={kolamLabel}
+                        tarikh={tarikhPertandingan}
+                        leftPancangs={leftPancangs}
+                        rightPancangs={rightPancangs}
+                        bookedSlots={bookedSlots}
+                        setBookedSlots={handleChangePancang}
+                        total={total}
+                        setTotal={setTotal}
+                        handleNext={() => handleNextPancang()}
+                        additionalProducts={additionalProducts}
+                        setAdditionalProducts={setAdditionalProducts} />
+
+                </Grid>
+            </Grid>
         },
+
         {
             title: 'Isi Maklumat Pengguna & Hantar',
             component: <MaklumatBookingManual
@@ -277,7 +344,7 @@ const BookingManualComponent = ({ data }) => {
 
 
     const handleSubmit = async () => {
-        createManualBooking(kolamId, tarikhPertandingan, calculatedRespObj, namaPenuh, email, telefon, isDeposit, depositAmount, voucher).then(res => {
+        createManualBooking(tarikhPertandingan, calculatedRespObj, namaPenuh, email, telefon, isDeposit, depositAmount, voucher).then(res => {
             setOpenSemakan(false);
             setOpenBerjaya(true);
         }).catch(e => {
@@ -370,40 +437,8 @@ const BookingManualComponent = ({ data }) => {
                     </Grid>
                     <Grid item xs={12}>
                         <Grid container>
-                            <Grid item xs={12}>
-                                <Typography fontWeight={'bold'}>Kolam</Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                                {kolamId}
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Grid container>
-                            <Grid item xs={12}>
-                                <Typography fontWeight={'bold'}>Pancang</Typography>
-                            </Grid>
-                            {calculatedRespObj?.products?.filter(e => e?.name == 'PANCANG').map(e => <Grid item xs={12}>
-                                <Grid container justifyContent={'space-between'}>
-                                    <Grid item xs="auto">
-                                        {e?.label}
-                                    </Grid>
-                                    {e?.discountedPrice != e?.price ? <Grid item xs="auto">
-                                        <Grid container columnSpacing={2}>
-                                            <Grid item xs="auto">
-                                                <Typography sx={{ textDecoration: 'line-through' }}>RM {e?.price}</Typography>
-                                            </Grid>
-                                            <Grid item xs="auto">
-                                                <Typography>RM {e?.discountedPrice}</Typography>
-                                            </Grid>
-                                        </Grid>
-                                    </Grid> : <Grid item xs="auto">
-                                        RM {e?.price}
-                                    </Grid>}
 
-                                </Grid>
-
-                            </Grid>)}
+                            {renderPancangSemakanView}
 
                         </Grid>
                     </Grid>

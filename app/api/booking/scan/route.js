@@ -27,10 +27,34 @@ export async function POST(req) {
                         'nama_akhir': true,
                     }
                 },
-                'kolam_id': true,
+                'manual_booking': {
+                    'select': {
+                        'nama_penuh': true,
+                        'email': true,
+                        'telefon': true,
+                    }
+                },
+                'is_manual': true,
+                'kolam_booking_kolams': {
+                    'select': {
+                        'kolam_booking_pancang': {
+                            'select': {
+                                'value': true,
+                            }
+                        },
+                        'kolam': {
+                            select: {
+                                'id': true,
+                                'label': true,
+                            }
+                        }
+                    },
+                    where: {
+                        'is_deleted': false,
+                    }
+                },
                 'tarikh': true,
                 'add_ons': true,
-                'pancangs': true,
             }
         })
         if (!bookingInfo || !bookingInfo?.id) {
@@ -42,7 +66,6 @@ export async function POST(req) {
             const updatedBooking = await prisma.kolam_booking.update({
                 where: {
                     is_deleted: false,
-                    is_checked_in: false,
                     id: Number(jsonData?.bookingId),
                     payment_status: 'PAID',
                 },
@@ -58,11 +81,35 @@ export async function POST(req) {
                             'nama_akhir': true,
                         }
                     },
-                    'kolam_id': true,
                     'tarikh': true,
                     'add_ons': true,
-                    'pancangs': true,
-                }
+                    'is_manual': true,
+                    'manual_booking': {
+                        'select': {
+                            'nama_penuh': true,
+                            'email': true,
+                            'telefon': true,
+                        }
+                    },
+                    'kolam_booking_kolams': {
+                        'select': {
+                            'kolam_booking_pancang': {
+                                'select': {
+                                    'value': true,
+                                }
+                            },
+                            'kolam': {
+                                select: {
+                                    'id': true,
+                                    'label': true,
+                                }
+                            }
+                        },
+                        where: {
+                            'is_deleted': false,
+                        },
+                    },
+                },
             });
             if (updatedBooking?.id) {
                 return NextResponse.json({ data: updatedBooking })

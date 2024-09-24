@@ -10,6 +10,7 @@ const ScanQR = (props) => {
     const [openScanner, setOpenScanner] = useState(true);
     const [alertProps, setAlertPropts] = useState({});
     const [dialogProps, setDialogProps] = useState({});
+    const [kolamPancangData, setKolamPancangData] = useState({});
 
     const handleScan = async (result) => {
         setOpenScanner(false);
@@ -19,14 +20,38 @@ const ScanQR = (props) => {
         });
         const message = await resp.json()
         if (resp?.ok) {
-            debugger
             setDialogProps({
                 open: true,
                 data: message?.data
             })
+            let kolamObj = {};
+            for (let b of message?.data?.kolam_booking_kolams) {
+                if (kolamObj[b?.kolam?.label]) {
+                    kolamObj[b?.kolam?.label] = [...kolamObj[b?.kolam?.label], b?.kolam_booking_pancang?.value].sort((a, b) => {
+                        // Compare the alphabetic part first
+                        const alphaA = a.charAt(0);
+                        const alphaB = b.charAt(0);
+
+                        if (alphaA !== alphaB) {
+                            return alphaA.localeCompare(alphaB);
+                        }
+
+                        // If the alphabetic parts are the same, compare the numeric part
+                        const numA = parseInt(a.slice(1), 10);
+                        const numB = parseInt(b.slice(1), 10);
+
+                        return numA - numB;
+                    });
+                } else {
+                    kolamObj[b?.kolam?.label] = [b?.kolam_booking_pancang?.value]
+                }
+            }
+
+            debugger
+            setKolamPancangData(kolamObj);
             setAlertPropts({
                 open: true,
-                message: 'Berjaya check-in booking!',
+                message: 'Berjaya check-in tempahan!',
                 severity: 'success'
             })
         } else {
@@ -89,30 +114,35 @@ const ScanQR = (props) => {
                                 <Typography fontWeight={'bold'}>Nama Pengguna</Typography>
                             </Grid>
                             <Grid item xs={12}>
-                                <Typography fontWeight={'200'}>{dialogProps?.data?.user?.nama_pertama} {dialogProps?.data?.user?.nama_akhir}</Typography>
+                                <Typography fontWeight={'200'}>{dialogProps?.data?.is_manual ? `${dialogProps?.data?.manual_booking?.nama_penuh}` : `${dialogProps?.data?.user?.nama_pertama} ${dialogProps?.data?.user?.nama_akhir}`}</Typography>
                             </Grid>
                         </Grid>
                     </Grid>
-                    <Grid item xs={12}>
+                    {Object.keys(kolamPancangData).map(kolam => <Grid item xs={12}>
                         <Grid container>
                             <Grid item xs={12}>
-                                <Typography fontWeight={'bold'}>Kolam</Typography>
+                                <Grid container>
+                                    <Grid item xs={12}>
+                                        <Typography fontWeight={'bold'}>Kolam</Typography>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Typography fontWeight={'200'}>{kolam}</Typography>
+                                    </Grid>
+                                </Grid>
                             </Grid>
                             <Grid item xs={12}>
-                                <Typography fontWeight={'200'}>{dialogProps?.data?.kolam_id}</Typography>
+                                <Grid container>
+                                    <Grid item xs={12}>
+                                        <Typography fontWeight={'bold'}>Pancang</Typography>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Typography fontWeight={'200'}>{kolamPancangData[kolam].map(e => e).join(', ')}</Typography>
+                                    </Grid>
+                                </Grid>
                             </Grid>
                         </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Grid container>
-                            <Grid item xs={12}>
-                                <Typography fontWeight={'bold'}>Pancang</Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Typography fontWeight={'200'}>{dialogProps?.data?.pancangs?.map(e => e?.nombor).join(',')}</Typography>
-                            </Grid>
-                        </Grid>
-                    </Grid>
+                    </Grid>)}
+
                     <Grid item xs={12}>
                         <Grid container>
                             <Grid item xs={12}>

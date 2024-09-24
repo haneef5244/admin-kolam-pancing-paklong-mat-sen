@@ -26,8 +26,12 @@ export async function POST(req) {
     if (kolam?.length) {
         filterWhere = {
             ...filterWhere,
-            kolam_id: {
-                in: kolam
+            kolam_booking_kolams: {
+                some: {
+                    'kolam_id': {
+                        in: kolam
+                    }
+                }
             }
         }
     }
@@ -125,20 +129,27 @@ export async function POST(req) {
     const resp = await prisma.kolam_booking.findMany({
         where: {
             ...filterWhere,
-            AND
+            AND,
+            is_deleted: false
         },
         select: {
             'id': true,
-            'kolam_id': true,
-            'pancangs': true,
+            'kolam_booking_kolams': {
+                'select': {
+                    'kolam_id': true,
+                    'kolam_booking_pancang': {
+                        select: {
+                            'value': true,
+                        }
+                    }
+                },
+                where: {
+                    is_deleted: false
+                }
+            },
             'add_ons': true,
             'amount': true,
             'user_id': true,
-            'pancangs': {
-                select: {
-                    'nombor': true,
-                }
-            },
             'user': {
                 select: {
                     'id': true,
@@ -172,6 +183,18 @@ export async function POST(req) {
             'id': 'desc'
         }
     })
+
+    for (let r of resp) {
+        let kolams = {}
+        for (let booking of r?.kolam_booking_kolams) {
+            if (!kolams.hasOwnProperty(booking?.kolam_id)) {
+                kolams[booking?.kolam_id] = [booking?.kolam_booking_pancang?.value]
+            } else {
+                kolams[booking?.kolam_id] = [...kolams[booking?.kolam_id], booking?.kolam_booking_pancang?.value]
+            }
+        }
+        r.kolam_bookings = kolams
+    }
 
     return NextResponse.json({ data: resp });
 }

@@ -1,7 +1,19 @@
 import { Container, SvgIcon, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const PondLayout = ({ handleOnClick }) => {
+
+    const [selectedKolam, setSelectedKolam] = useState(1);
+
+    useEffect(() => {
+        handleOnClick(1)
+    }, [])
+
+    const onClick = (id) => {
+        setSelectedKolam(id);
+        handleOnClick(id);
+    }
 
     const scaleSvgString = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                 width="50" height="50" viewBox="0 0 33 32" enable-background="new 0 0 33 32" xml:space="preserve">
@@ -32,7 +44,7 @@ const PondLayout = ({ handleOnClick }) => {
 
     return (
         <Container maxWidth="sm" sx={{ pb: 0 }}>
-            <Typography fontWeight={'bold'} sx={{ pb: 2 }}>Layout Kolam Pancing Paklong Mat Sen</Typography>
+            <Typography fontWeight={'bold'} sx={{ pb: 2 }}>Pilih Kolam</Typography>
             <svg viewBox="0 0 1000 1800" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
                 {/* <!-- Main Gate --> */}
                 <text x="130" y="30" font-family="Arial" font-size="20" fill="#000" text-anchor="middle">Main GATE</text>
@@ -51,8 +63,8 @@ const PondLayout = ({ handleOnClick }) => {
 
 
                 {/* <!-- Pond 1 --> */}
-                <rect onClick={() => handleOnClick(1)} id="pond1" x="350" y="300" width="300" height="450" fill="#85C1E9" stroke="#2980B9" stroke-width="3" />
-                <text onClick={() => handleOnClick(1)} x="500" y="525" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">1</text>
+                <rect onClick={() => onClick(1)} id="pond1" x="350" y="300" width="300" height="450" fill={selectedKolam == 1 ? "#F39C12" : "#85C1E9"} stroke={selectedKolam == 1 ? "#D35400" : "#2980B9"} stroke-width="3" />
+                <text onClick={() => onClick(1)} x="500" y="525" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">1</text>
 
                 {/* A */}
                 <text x="630" y="280" font-family="Arial" font-size="30" fill="#000" font-weight="bold" text-anchor="middle">A</text>
@@ -80,8 +92,8 @@ const PondLayout = ({ handleOnClick }) => {
 
 
                 {/* <!-- Pond 2 --> */}
-                <rect onClick={() => handleOnClick(2)} id="pond2" x="150" y="900" width="280" height="650" fill="#85C1E9" stroke="#2980B9" stroke-width="3" />
-                <text onClick={() => handleOnClick(2)} x="290" y="1225" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">2</text>
+                <rect onClick={() => onClick(2)} id="pond2" x="150" y="900" width="280" height="650" fill={selectedKolam == 2 ? "#F39C12" : "#85C1E9"} stroke={selectedKolam == 2 ? "#D35400" : "#2980B9"} stroke-width="3" />
+                <text onClick={() => onClick(2)} x="290" y="1225" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">2</text>
 
                 {/* C */}
                 <text x="170" y="880" font-family="Arial" font-size="30" fill="#000" font-weight="bold" text-anchor="middle">C</text>
@@ -128,8 +140,8 @@ const PondLayout = ({ handleOnClick }) => {
                 </foreignObject>
 
                 {/* <!-- Pond 3 --> */}
-                <rect onClick={() => handleOnClick(3)} id="pond3" x="590" y="900" width="280" height="650" fill="#85C1E9" stroke="#2980B9" stroke-width="3" />
-                <text onClick={() => handleOnClick(3)} x="730" y="1225" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">3</text>
+                <rect onClick={() => onClick(3)} id="pond3" x="590" y="900" width="280" height="650" fill={selectedKolam == 3 ? "#F39C12" : "#85C1E9"} stroke={selectedKolam == 3 ? "#D35400" : "#2980B9"} stroke-width="3" />
+                <text onClick={() => onClick(3)} x="730" y="1225" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">3</text>
 
                 {/* E */}
                 <text x="610" y="880" font-family="Arial" font-size="30" fill="#000" font-weight="bold" text-anchor="middle">E</text>

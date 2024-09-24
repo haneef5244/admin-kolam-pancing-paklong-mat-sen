@@ -112,7 +112,7 @@ export const Dashboard = ({ pertandingans }) => {
                 seriesData['Jumlah Pancang'] = Array(dates.length).fill(0);
             }
             const dateIndex = dateObj[moment(d.created_on).startOf('day').format('YYYY-MM-DD')];
-            seriesData['Jumlah Pancang'][dateIndex] = Number(seriesData['Jumlah Pancang'][dateIndex]) + Number(d.pancangs?.length);
+            seriesData['Jumlah Pancang'][dateIndex] = Number(seriesData['Jumlah Pancang'][dateIndex]) + Number(d.kolam_booking_kolams?.length);
         });
 
         return {

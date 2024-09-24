@@ -37,6 +37,7 @@ model kolam {
   label           Int   @db.Integer
   jumlah_pancang  Int   @db.Integer
   kolam_bookings  kolam_booking[]
+  kolam_booking_kolams  kolam_booking_kolams[]
   pancangs        pancang[]
   booking_availabilities      booking_availability[]
 
@@ -76,8 +77,9 @@ model user {
 
 model kolam_booking {
   id                          Int @id @default(autoincrement())
-  kolam                       kolam  @relation(fields: [kolam_id], references:[id])
-  kolam_id                    Int
+  kolam                       kolam?  @relation(fields: [kolam_id], references:[id])
+  kolam_id                    Int?
+  kolam_booking_kolams        kolam_booking_kolams[]
   pancangs                    kolam_booking_pancang[]
   add_ons                     kolam_booking_add_ons[]
   payment                     kolam_booking_payments?
@@ -98,6 +100,17 @@ model kolam_booking {
   voucher_id                  Int?
   check_in_on                 DateTime? @db.Timestamptz(6)
   created_on                  DateTime @db.Timestamptz(6) @default(now())
+}
+
+model kolam_booking_kolams {
+  id                          Int                   @unique @default(autoincrement()) 
+  kolam                       kolam                 @relation(fields: [kolam_id], references:[id])
+  kolam_id                    Int     
+  kolam_booking               kolam_booking         @relation(fields: [kolam_booking_id], references: [id])
+  kolam_booking_id            Int                   
+  kolam_booking_pancang       pancang               @relation(fields: [kolam_booking_pancang_id], references: [id])
+  kolam_booking_pancang_id    Int    
+  is_deleted                  Boolean               @db.Boolean @default(false)
 }
 
 model manual_booking {
@@ -174,6 +187,7 @@ model pancang {
   is_left                     Boolean?       @default(false)
   is_right                    Boolean?       @default(false)
   booking_availabilities      booking_availability[]
+  kolam_booking_kolams        kolam_booking_kolams[]
   pertandingan_audit_logs     pertandingan_audit_log[]
   is_deleted                  Boolean        @default(false)
   is_available                Boolean        @default(true)
@@ -197,6 +211,8 @@ model pertandingan {
   poster_url                  String?
   is_deleted                  Boolean        @default(false)
   pertandingan_audit_logs     pertandingan_audit_log[]
+  is_started                  Boolean         @default(false)
+  is_ended                    Boolean         @default(false)
   @@unique([tarikh])
 }
 

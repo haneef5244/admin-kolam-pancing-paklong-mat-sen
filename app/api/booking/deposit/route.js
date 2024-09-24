@@ -7,7 +7,8 @@ export async function PATCH(req) {
 
     const booking = await prisma.kolam_booking.findFirst({
         where: {
-            id: id ? Number(id) : null
+            id: id ? Number(id) : null,
+            is_deleted: false,
         },
         select: {
             'deposit_amount': true,
@@ -17,6 +18,7 @@ export async function PATCH(req) {
     const update = await prisma.kolam_booking.update({
         where: {
             id: id ? Number(id) : null,
+            is_deleted: false,
         },
         data: {
             deposit_amount: Number(newDepositAmount) + Number(booking?.deposit_amount),

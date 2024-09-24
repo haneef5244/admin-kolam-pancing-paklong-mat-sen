@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './index.css'; // Import your CSS file for styling
 import { Alert, Button, Card, CardContent, Chip, Container, Divider, Grid, Snackbar, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { DoubleArrowOutlined, Info } from '@mui/icons-material';
@@ -32,6 +32,14 @@ const KolamPancang = ({
 
     const [snackbarProps, setSnackbarProps] = useState({});
     const [loadingButton, setLoadingButton] = useState(false);
+
+    useEffect(() => {
+        setLeft(leftPancangs)
+    }, [leftPancangs])
+
+    useEffect(() => {
+        setRight(rightPancangs)
+    }, [rightPancangs])
 
 
     const handleBookSlot = (slotId) => {
@@ -82,27 +90,6 @@ const KolamPancang = ({
             }
         }
         handleNext();
-        // const resp = await create({
-        //     pancang: bookedSlots,
-        //     kolam_id: Number(kolamId),
-        //     tarikhPancing: new Date(tarikh),
-        //     amount: total,
-        //     addOns,
-        // });
-        // const respJson = await resp.json();
-
-        // if (!resp.ok) {
-        //     setSnackbarProps({
-        //         open: true,
-        //         message: respJson?.error,
-        //         severity: 'error'
-        //     })
-        //     setLoadingButton(false);
-        // } else {
-        //     const { booking } = respJson;
-        //     navigate.push(`/kolam/booking/${booking}`)
-        // }
-
     }
 
     const handleClickAdditionalProducts = (valueToAdd, index) => {
@@ -149,7 +136,7 @@ const KolamPancang = ({
     }
 
     return (
-        <Container sx={{ pt: 3, pb: 3 }}>
+        <Container sx={{ pb: 3 }}>
 
             <Grid container>
                 <Grid item xs={12}>

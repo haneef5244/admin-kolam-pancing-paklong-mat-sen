@@ -20,9 +20,57 @@ export const getAvailablePancang = async (kolamId, tarikh) => {
                     'is_available': true,
                 }
             },
+            'kolam_id': true,
             'is_available': true,
         }
     })
+}
+
+export const getKolamsFromPancang = async (pancangs) => {
+    return JSON.stringify(await prisma.booking_availability.findMany({
+        where: {
+            pancang: {
+                'value': {
+                    in: pancangs
+                }
+            }
+        },
+        distinct: ['kolam_id']
+    }))
+}
+
+export const getPancangData = async (pancangs) => {
+    const data = await prisma.booking_availability.findMany({
+        where: {
+            pancang: {
+                'value': {
+                    in: pancangs
+                }
+            }
+        },
+        select: {
+            'kolam_id': true,
+            'pancang': {
+                'select': {
+                    'value': true
+                }
+            }
+        },
+        orderBy: {
+            'pancang': {
+                'value': 'asc'
+            }
+        }
+    })
+    let obj = {}
+    for (let i of data) {
+        if (obj.hasOwnProperty(i?.kolam_id)) {
+            obj[i?.kolam_id] = [...obj[i?.kolam_id], i?.pancang?.value]
+        } else {
+            obj[i?.kolam_id] = [i?.pancang?.value]
+        }
+    }
+    return JSON.stringify(obj);
 }
 
 export const getAvailableAndUnavailablePancang = async (tarikh) => {

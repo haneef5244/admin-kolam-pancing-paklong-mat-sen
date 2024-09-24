@@ -83,7 +83,6 @@ const MyDocument = ({ invoice }) => (
                 <View>
                     <Text style={{ fontSize: 13, fontWeight: 'bold' }}>Tarikh pertandingan:</Text>
                     <Text style={{ fontSize: 11, marginTop: 2 }}>{invoice.tarikh_pancing}</Text>
-                    <Text style={{ marginTop: 2, fontSize: 13, fontWeight: 'bold' }}>Kolam: {invoice.kolam}</Text>
                 </View>
             </View>
             <View style={{ marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

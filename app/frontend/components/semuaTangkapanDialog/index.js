@@ -1,47 +1,81 @@
 import React, { useEffect, useState } from "react";
-import { getAllPertandinganLog, getPertandinganLog, updateAuditLog } from "@/app/backend/actions/pertandingan";
-import { Box, Dialog, DialogContent } from "@mui/material";
+import { deletePertandinganAuditLog, getAllPertandinganLog, getPertandinganLog, updateAuditLog } from "@/app/backend/actions/pertandingan";
+import { Avatar, Box, Button, Dialog, DialogContent, Grid } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { validate } from "uuid";
+import { CloseOutlined } from "@mui/icons-material";
 
 
-const columns = [
-    {
-        field: 'no', headerName: 'NO', width: 90, flex: 1,
-    },
-    {
-        field: 'pancang_value',
-        headerName: 'Pancang',
-        sortable: true,
-        editable: false,
-        flex: 1,
-    },
-    {
-        field: 'berat',
-        headerName: 'Berat (kg)',
-        type: 'number',
-        editable: true,
-        flex: 1,
-    },
-    {
-        field: 'waktu',
-        headerName: 'Waktu',
-        editable: true,
-        flex: 1,
 
-    },
-    {
-        field: 'timbang_id',
-        headerName: 'Penimbang',
-        editable: true,
-        sortable: false,
-        type: 'number',
-        flex: 1,
-    },
-];
 
-const SemuaTangkapanDialog = ({ open, pertandinganId, tarikhPertandingan }) => {
+const SemuaTangkapanDialog = ({ open, pertandinganId, tarikhPertandingan, jenisPertandingan, handleClose }) => {
     const [data, setData] = useState([]);
+
+    const columns = [
+        {
+            field: 'no', headerName: 'NO', width: 90, flex: 1, headerAlign: 'center',
+            align: 'center',
+        },
+        {
+            field: 'pancang_value',
+            headerName: 'Pancang',
+            sortable: true,
+            editable: false,
+            flex: 1,
+            headerAlign: 'center',
+            align: 'center',
+        },
+        {
+            field: 'berat',
+            headerName: 'Berat (kg)',
+            type: 'number',
+            editable: false,
+            flex: 1,
+            headerAlign: 'center',
+            align: 'center',
+        },
+        {
+            field: 'waktu',
+            headerName: 'Waktu',
+            editable: false,
+            flex: 1,
+            headerAlign: 'center',
+            align: 'center',
+        },
+        {
+            field: 'timbang_id',
+            headerName: 'Penimbang',
+            editable: false,
+            sortable: false,
+            type: 'number',
+            headerAlign: 'center',
+            align: 'center',
+            flex: 1,
+        },
+        {
+            field: 'delete',
+            headerName: 'Buang',
+            editable: false,
+            sortable: false,
+            flex: 1,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: params => <Button
+                variant="contained"
+                color="error"
+                onClick={() => handleDelete(params?.id)}
+            >
+                Buang
+            </Button>
+        },
+    ];
+
+    const handleDelete = async (id) => {
+        await deletePertandinganAuditLog(Number(id), pertandinganId, jenisPertandingan)
+        getAllPertandinganLog(pertandinganId).then(data =>
+            setData(data)
+        );
+    }
 
     useEffect(() => {
         if (open) {
@@ -51,18 +85,19 @@ const SemuaTangkapanDialog = ({ open, pertandinganId, tarikhPertandingan }) => {
         }
     }, [open])
 
-    const handleCellEditCommit = (params, a, b) => {
-        updateAuditLog(params, pertandinganId, tarikhPertandingan).then(res => {
-            getAllPertandinganLog(pertandinganId).then(data =>
-                setData(data)
-            );
-        });
-    };
 
     return <Dialog open={open} fullScreen>
 
         <DialogContent>
-            <Box sx={{ height: 400, width: '100%' }}>
+            <Grid container>
+                <Grid item xs={12} display={'flex'} textAlign={'end'} justifyContent={'end'}>
+                    <Button onClick={handleClose}><Avatar>
+                        <CloseOutlined />
+                    </Avatar>
+                    </Button>
+                </Grid>
+            </Grid>
+            <Box sx={{ width: '100%' }}>
                 <DataGrid
                     getRowId={(row) => row.id} // Use 'no' as the unique ID
                     rows={data}
@@ -70,14 +105,11 @@ const SemuaTangkapanDialog = ({ open, pertandinganId, tarikhPertandingan }) => {
                     initialState={{
                         pagination: {
                             paginationModel: {
-                                pageSize: 5,
+                                pageSize: 100,
                             },
                         },
                     }}
-                    pageSizeOptions={[5]}
-                    checkboxSelection
-                    disableRowSelectionOnClick
-                    processRowUpdate={handleCellEditCommit}
+                    pageSizeOptions={[100]}
                 />
             </Box>
         </DialogContent>

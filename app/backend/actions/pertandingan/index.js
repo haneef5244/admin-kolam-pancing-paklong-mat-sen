@@ -256,3 +256,14 @@ export const updateAuditLog = async (data, pertandinganId, tarikhPertandingan) =
     })
     broadcast(pertandinganId, updatedData?.pertandingan?.jenis)
 }
+
+export const deletePertandinganAuditLog = async (id, pertandinganId, jenisPertandingan) => {
+    await prisma.pertandingan_audit_log.delete({
+        where: {
+            id,
+        }
+    })
+    broadcast(pertandinganId, jenisPertandingan)
+
+    return
+}

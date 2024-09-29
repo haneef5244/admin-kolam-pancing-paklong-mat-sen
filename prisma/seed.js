@@ -95,46 +95,38 @@ async function main() {
     //     }
     // })
 
-    const existingKolamBookings = await prisma.kolam_booking.findMany({
-        select: {
-            'kolam_id': true,
-            'pancangs': {
-                select: {
-                    'nombor': true
-                }
-            },
-            'id': true,
-        }
-    });
+    // password = PenimbangKolamMatSen
+    let user = [];
+    for (let i = 1; i <= 8; i++) {
+        user.push({
+            username: `timbang${i}`,
+            password: '$2a$10$tk6gRq7arH5vv7UTHcP.4u.zj.sO264BBrP/tAAdKs7CS2WcfBx3.',
+            nama_pertama: 'Timbang',
+            nama_akhir: `${i.toString()}`,
+            email: `timbang${i}@paklongmatsen.com`,
+            telefon: '0000000000'
+        })
+    }
 
-    console.log(existingKolamBookings[0])
-
-    const pancangs = await prisma.pancang.findMany({
+    let userTimbang = await prisma.admin.createManyAndReturn({
+        data: user,
         select: {
+            'nama_pertama': true,
+            'nama_akhir': true,
             'id': true,
-            'value': true,
         }
     })
 
-    let pancangValueToIdObj = {}
-
-    for (let p of pancangs) {
-        pancangValueToIdObj[p?.value] = p.id
+    let timbang = []
+    for (let i = 1; i <= 8; i++) {
+        const filtered = userTimbang.find(e => e?.nama_pertama == 'Timbang' && e?.nama_akhir == i) || {}
+        timbang.push({
+            label: `Timbang ${i}`,
+            admin_id: filtered?.id
+        })
     }
-
-    let dataToUpdate = [];
-
-    for (let booking of existingKolamBookings) {
-        for (let p of booking?.pancangs) {
-            dataToUpdate.push({
-                kolam_booking_id: booking?.id,
-                kolam_booking_pancang_id: pancangValueToIdObj[p?.nombor],
-                kolam_id: booking.kolam_id
-            })
-        }
-    }
-    await prisma.kolam_booking_kolams.createMany({
-        data: dataToUpdate
+    await prisma.timbang.createMany({
+        data: timbang
     })
 }
 

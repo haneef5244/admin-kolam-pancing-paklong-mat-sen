@@ -95,3 +95,21 @@ export const getAvailableAndUnavailablePancang = async (tarikh) => {
         unavailable,
     })
 }
+
+export const getAllActivePancangs = async () => {
+    let pancangs = await prisma.pancang.findMany({
+        where: {
+            is_deleted: false,
+            is_available: true,
+        },
+        select: {
+            'id': true,
+            'value': true
+        }
+    })
+
+    return pancangs.map(p => ({
+        ...p,
+        label: p?.value
+    }))
+}

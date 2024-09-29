@@ -51,7 +51,7 @@ model tarikh_memancing {
 }
 
 model admin {
-  id             Int @id @default(autoincrement())
+  id             Int @id @default(autoincrement()) @unique
   username       String @db.Text @unique
   nama_pertama   String @db.Text
   nama_akhir     String @db.Text
@@ -59,6 +59,7 @@ model admin {
   telefon        String @db.Text
   email          String @db.Text @unique
   forgot_password String? @db.Text
+  timbang        timbang?
 }
 
 model user {
@@ -205,7 +206,7 @@ model booking_availability {
 }
 
 model pertandingan {
-  id                          Int            @id @default(autoincrement()) 
+  id                          Int            @id @default(autoincrement())
   tarikh                      DateTime?
   jenis                       Jenis_Pertandingan?
   poster_url                  String?
@@ -217,11 +218,23 @@ model pertandingan {
 }
 
 model pertandingan_audit_log {
-  id                          Int            @id @default(autoincrement()) 
+  id                          Int            @id @default(autoincrement()) @unique
   pertandingan                pertandingan   @relation(fields: [pertandingan_id], references:[id])
   pertandingan_id             Int
   pancang                     pancang        @relation(fields: [pancang_value], references:[value])
   pancang_value               String                         
   berat                       Decimal        @db.Decimal(18,6)
+  timbang                     timbang        @relation(fields: [timbang_id], references:[id])
+  waktu                       DateTime       @default(now())
+  timbang_id                  Int           
+  is_deleted                  Boolean        @default(false)
+}
+
+model timbang { 
+  id                          Int            @id @default(autoincrement()) @unique
+  label                       String  
+  pertandingan_audit_logs     pertandingan_audit_log[]
+  admin                       admin?  @relation(fields: [admin_id], references:[id])
+  admin_id                    Int?           @unique
   is_deleted                  Boolean        @default(false)
 }

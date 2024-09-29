@@ -20,7 +20,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
-import { Book, BookOnlineOutlined, CalendarMonthOutlined, Create, Home, Logout, QrCode } from '@mui/icons-material';
+import { Book, BookOnlineOutlined, CalendarMonthOutlined, Create, EmojiEvents, EmojiEventsOutlined, Home, Logout, QrCode } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { logout } from '../../services/user';
 import { UserContext } from '../../contexts/UserContext';
@@ -196,6 +196,14 @@ export default function Header() {
                                 <Create />
                             </ListItemIcon>
                             <ListItemText primary={'Cipta Booking Manual'} />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem key={'Mulakan Pertandingan'} disablePadding>
+                        <ListItemButton onClick={() => handleNavigation('/pertandingan')}>
+                            <ListItemIcon>
+                                <EmojiEventsOutlined />
+                            </ListItemIcon>
+                            <ListItemText primary={'Mulakan Pertandingan'} />
                         </ListItemButton>
                     </ListItem>
                     <ListItem key={'Urus Tempahan'} disablePadding>

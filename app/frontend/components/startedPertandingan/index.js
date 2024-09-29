@@ -8,9 +8,12 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { isNumeric } from '../../utils/numbers';
 import SemuaTangkapanDialog from '../semuaTangkapanDialog';
+import { LoadingButton } from '@mui/lab';
+import Lottie from 'react-lottie';
+import Live from '@/app/frontend/lotties/live.json';
 
 
 export default function StartedPertandingan({ pancangs, pertandinganId, jenisPertandingan, data = [], tarikhPertandingan }) {
@@ -32,10 +35,13 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
 
     const [isEnded, setIsEnded] = useState(false);
     const [openIsEndedDialog, setOpenIsEndedDialog] = useState(false)
+    const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
+    const pancangRef = useRef(null);
 
     const handleOnChangePancang = (e, v) => {
         if (v) {
             setNoPancangError('')
+
         }
         setNoPancang(v);
     }
@@ -46,12 +52,22 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
         setFishWeight(val)
     }
 
-    const handleCloseForm = () => {
-        setOpenFormDialog(false);
+    const handleResetForm = () => {
         setNoPancang('');
         setFishWeight('');
-        setTimbang(null);
-        setTime(null);
+        setTimbang('');
+        setTime(undefined);
+    }
+
+    const handleCloseForm = () => {
+        setOpenFormDialog(false);
+        handleResetForm();
+    }
+
+    const handleFormKeyDown = async (event) => {
+        if (event.key == 'Enter' && openFormDialog && !submitButtonLoading) {
+            await handleSubmit();
+        }
     }
 
     useEffect(() => {
@@ -134,21 +150,27 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
     }
 
     const handleSubmit = async () => {
+        setSubmitButtonLoading(true)
         if (isValidSubmission()) {
             insertPertandingLog(noPancang, fishWeight, pertandinganId, timbang, jenisPertandingan, time, tarikhPertandingan).then(res => {
-                handleCloseForm();
+                handleResetForm()
                 setSnackbarProps({
                     open: true,
                     severity: 'success',
                     message: 'Tangkapan telah dikemaskini!'
                 })
+                setSubmitButtonLoading(false)
+                pancangRef.current.focus();
             }).catch(e => {
                 setSnackbarProps({
                     open: true,
                     severity: 'error',
                     message: e?.message
                 })
+                setSubmitButtonLoading(false)
             })
+        } else {
+            setSubmitButtonLoading(false)
         }
     }
 
@@ -175,10 +197,43 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
         setTime(time);
     }
 
+    function pancangRenderInput(inputProps) {
+        const { classes, ref, ...other } = inputProps;
+
+        return (
+            <TextField
+                fullWidth
+                autoFocus
+                InputProps={{
+                    inputRef: pancangRef,
+                    classes: {
+                        input: classes.input
+                    },
+                    ...other
+                }}
+            />
+        );
+    }
+
     return <Container maxWidth={'xl'}>
         <Grid container rowSpacing={1} justifyContent={'space-between'} alignItems={'center'}>
-            <Grid item xs={6}>
-                <Button disabled={isEnded} onClick={() => setOpenFormDialog(true)} variant='contained'>
+            <Grid item xs={12}>
+                <Lottie options={{
+                    loop: true,
+                    autoplay: true,
+                    animationData: Live,
+                    rendererSettings: {
+                        preserveAspectRatio: 'xMidYMid slice',
+                    }
+                }}
+                    width={100}
+                    isStopped={false}
+                    isPaused={false} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+                <Button disabled={isEnded} onClick={() => {
+                    setOpenFormDialog(true)
+                }} variant='contained'>
                     <Typography textTransform={'capitalize'}>Tambah Tangkapan</Typography>
                 </Button>
             </Grid>
@@ -187,12 +242,12 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                     <Typography textTransform={'capitalize'}>Lihat Semua Tangkapan</Typography>
                 </Button>
             </Grid> */}
-            <Grid item xs={6} alignItems={'end'} textAlign={'end'}>
+            <Grid item xs={12} sm={6} alignItems={'end'} textAlign={'end'}>
                 <Button disabled={isEnded} sx={{ bgcolor: red[600], ':hover': { bgcolor: red[700] } }} onClick={() => handleClickTamatkanPertandingan()} variant='contained'>
                     <Typography textTransform={'capitalize'}>Tamatkan Pertandingan</Typography>
                 </Button>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} pb={10}>
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -226,7 +281,7 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                 </TableContainer>
             </Grid>
         </Grid>
-        <Dialog open={openFormDialog} maxWidth={'sm'} fullWidth >
+        <Dialog open={openFormDialog} maxWidth={'sm'} fullWidth onKeyDown={handleFormKeyDown} >
             <DialogTitle fontWeight={'bold'}>
                 Tambah Tangkapan
             </DialogTitle>
@@ -235,13 +290,14 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                     <Grid item xs={12}>
                         <FormControl fullWidth variant="outlined">
                             <Autocomplete
-                                disablePortal
+
+                                openOnFocus={true}
                                 autoFocus={true}
                                 options={pancangs}
                                 value={noPancang}
                                 sx={{ width: 300, borderRadius: 2, }}
                                 onChange={handleOnChangePancang}
-                                renderInput={(params) => <TextField error={noPancangError} autoSelect={true} autoFocus={true} {...params} sx={{ borderRadius: '20px !important' }} label="No. Pancang" />}
+                                renderInput={(params) => <TextField error={noPancangError} {...params} InputProps={{ inputRef: pancangRef, ...params.InputProps, autoFocus: true }} sx={{ borderRadius: '20px !important' }} label="No. Pancang" />}
                             />
                             <FormHelperText sx={{ color: red[600] }}>{noPancangError}</FormHelperText>
                         </FormControl>
@@ -259,11 +315,7 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                                 onChange={e => handleOnChangeFishWeight(e.target.value)} helperText={fishWeightError} error={fishWeightError} fullWidth label="Username" variant="outlined"
                                 startAdornment={
                                     <InputAdornment position='start'>
-                                        <IconButton
-                                            edge="end"
-                                        >
-                                            <NumbersOutlined sx={{ color: fishWeightError ? red[600] : 'unset' }} />
-                                        </IconButton>
+                                        <NumbersOutlined sx={{ color: fishWeightError ? red[600] : 'unset' }} />
                                     </InputAdornment>
                                 }
                                 endAdornment={<Typography sx={{ color: fishWeightError ? red[600] : 'unset' }}>kg</Typography>}
@@ -284,11 +336,7 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                                 onChange={e => handleOnChangeTimbang(e.target.value)} helperText={timbangError} error={timbangError} fullWidth label="Timbang" variant="outlined"
                                 startAdornment={
                                     <InputAdornment position='start'>
-                                        <IconButton
-                                            edge="end"
-                                        >
-                                            <ScaleOutlined sx={{ color: timbangError ? red[600] : 'unset' }} />
-                                        </IconButton>
+                                        <ScaleOutlined sx={{ color: timbangError ? red[600] : 'unset' }} />
                                     </InputAdornment>
                                 }
                             />
@@ -310,6 +358,7 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                                             }
                                         },
                                     }}
+                                    value={time}
                                     sx={{ width: 300, }} label="Waktu" onChange={handleOnChangeTime} />
                             </DemoContainer>
                         </LocalizationProvider>
@@ -322,7 +371,7 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                         <Button onClick={handleCloseForm} variant='outlined'><Typography textTransform={'capitalize'}>Batal</Typography></Button>
                     </Grid>
                     <Grid item xs={'auto'}>
-                        <Button onClick={handleSubmit} variant='contained'><Typography textTransform={'capitalize'}>Hantar</Typography></Button>
+                        <LoadingButton loading={submitButtonLoading} onClick={handleSubmit} variant='contained'><Typography textTransform={'capitalize'}>Hantar</Typography></LoadingButton>
                     </Grid>
                 </Grid>
             </DialogActions>

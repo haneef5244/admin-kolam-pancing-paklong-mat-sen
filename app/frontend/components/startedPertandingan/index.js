@@ -230,19 +230,19 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
                     isStopped={false}
                     isPaused={false} />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
                 <Button disabled={isEnded} onClick={() => {
                     setOpenFormDialog(true)
                 }} variant='contained'>
                     <Typography textTransform={'capitalize'}>Tambah Tangkapan</Typography>
                 </Button>
             </Grid>
-            {/* <Grid item xs={4} textAlign={'center'}>
-                <Button disabled onClick={() => setOpenSemuaTangkapanDialog(true)} color='info' variant='contained'>
+            <Grid item xs={12} sm={4} textAlign={'center'}>
+                <Button onClick={() => setOpenSemuaTangkapanDialog(true)} color='info' variant='contained'>
                     <Typography textTransform={'capitalize'}>Lihat Semua Tangkapan</Typography>
                 </Button>
-            </Grid> */}
-            <Grid item xs={12} sm={6} alignItems={'end'} textAlign={'end'}>
+            </Grid>
+            <Grid item xs={12} sm={4} alignItems={'end'} textAlign={'end'}>
                 <Button disabled={isEnded} sx={{ bgcolor: red[600], ':hover': { bgcolor: red[700] } }} onClick={() => handleClickTamatkanPertandingan()} variant='contained'>
                     <Typography textTransform={'capitalize'}>Tamatkan Pertandingan</Typography>
                 </Button>
@@ -379,7 +379,7 @@ export default function StartedPertandingan({ pancangs, pertandinganId, jenisPer
         <Dialog open={openIsEndedDialog} onClose={() => setOpenIsEndedDialog(false)}>
             <DialogTitle fontWeight={'bold'}>Pertandingan Telah Tamat!</DialogTitle>
         </Dialog>
-        <SemuaTangkapanDialog open={openSemuaTangkapanDialog} pertandinganId={pertandinganId} tarikhPertandingan={tarikhPertandingan} />
+        <SemuaTangkapanDialog handleClose={() => setOpenSemuaTangkapanDialog(false)} open={openSemuaTangkapanDialog} pertandinganId={pertandinganId} tarikhPertandingan={tarikhPertandingan} jenisPertandingan={jenisPertandingan} />
         {snackbarProps?.open ? <Snackbar open={snackbarProps?.open} autoHideDuration={5000} onClose={() => setSnackbarProps({})}>
             <Alert severity={snackbarProps?.severity} variant='filled'>
                 {snackbarProps?.message}

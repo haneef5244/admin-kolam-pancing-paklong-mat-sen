@@ -15,7 +15,6 @@ export async function POST(req) {
         const bookingInfo = await prisma.kolam_booking.findFirst({
             where: {
                 is_deleted: false,
-                is_checked_in: false,
                 id: Number(jsonData?.bookingId),
                 payment_status: 'PAID',
             },
@@ -55,12 +54,15 @@ export async function POST(req) {
                 },
                 'tarikh': true,
                 'add_ons': true,
+                'is_checked_in': true,
             }
         })
         if (!bookingInfo || !bookingInfo?.id) {
             return NextResponse.json({ error: 'Booking tidak wujud' }, { status: 500 })
-        } else if (moment(bookingInfo?.tarikh).startOf('day').isBefore(moment().startOf('day'))) {
+        } else if (moment(bookingInfo?.tarikh).add(1, 'day').endOf('day').isBefore(moment().startOf('day'))) {
             return NextResponse.json({ error: `Booking sudah terlepas! Tarikh booking - ${moment(bookingInfo?.tarikh).format('Do MMM YYYY')}` }, { status: 500 })
+        } else if (bookingInfo?.is_checked_in) {
+            return NextResponse.json({ error: `Pengguna telah check-in sebelum ini!` }, { status: 500 })
         }
         if (bookingInfo && bookingInfo?.id) {
             const updatedBooking = await prisma.kolam_booking.update({

@@ -96,37 +96,33 @@ async function main() {
     // })
 
     // password = PenimbangKolamMatSen
-    let user = [];
-    for (let i = 1; i <= 8; i++) {
-        user.push({
-            username: `timbang${i}`,
-            password: '$2a$10$tk6gRq7arH5vv7UTHcP.4u.zj.sO264BBrP/tAAdKs7CS2WcfBx3.',
-            nama_pertama: 'Timbang',
-            nama_akhir: `${i.toString()}`,
-            email: `timbang${i}@paklongmatsen.com`,
-            telefon: '0000000000'
-        })
-    }
 
-    let userTimbang = await prisma.admin.createManyAndReturn({
-        data: user,
-        select: {
-            'nama_pertama': true,
-            'nama_akhir': true,
-            'id': true,
+    const data = []
+
+    for (let i = 1; i <= 200; i++) {
+        let hadiah = ''
+        if (i == 1) {
+            hadiah = 'RM 10,000'
+        } else if (i == 2) {
+            hadiah = 'RM 1,000'
+        } else if (i == 3) {
+            hadiah = 'RM 500'
+        } else if ([4, 5].includes(i)) {
+            hadiah = 'RM 300'
+        } else if (i >= 6 && i <= 190) {
+            hadiah = 'RM 160'
+        } else if (i >= 191 && i <= 200) {
+            hadiah = 'RM 160 & 1 Tiket Percuma'
         }
-    })
-
-    let timbang = []
-    for (let i = 1; i <= 8; i++) {
-        const filtered = userTimbang.find(e => e?.nama_pertama == 'Timbang' && e?.nama_akhir == i) || {}
-        timbang.push({
-            label: `Timbang ${i}`,
-            admin_id: filtered?.id
+        data.push({
+            no: i,
+            hadiah,
+            jenis: 'OPEN'
         })
     }
-    await prisma.timbang.createMany({
-        data: timbang
+
+    await prisma.hadiah_pertandingan.createMany({
+        data,
     })
 }
 

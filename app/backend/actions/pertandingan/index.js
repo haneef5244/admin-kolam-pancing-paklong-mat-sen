@@ -90,7 +90,7 @@ export const getPertandinganLog = async (pertandinganId) => {
         }, {
             waktu: 'desc'
         }],
-        'take': 250
+        'take': 200
     })
     result = result?.map((e, no) => ({ ...e, no: no + 1 }))
     return result;
@@ -174,9 +174,22 @@ export const broadcast = async (pertandinganId, jenisPertandingan) => {
             }, {
                 waktu: 'desc'
             }],
-            'take': 250
+            'take': 200
         })
-        result = result?.map((e, no) => ({ ...e, no: no + 1 }))
+        let hadiah = await prisma.hadiah_pertandingan.findMany({
+            where: {
+                jenis: jenisPertandingan,
+                is_deleted: false,
+            },
+            select: {
+                'no': true,
+                'hadiah': true,
+            },
+            orderBy: {
+                'no': 'asc'
+            }
+        })
+        result = result?.map((e, no) => ({ ...e, no: no + 1, hadiah: hadiah[no]?.hadiah }))
         await broadcastMessage(process.env.AZURE_WEB_PUB_SUB_CONNECTION_STRING, `pertandingan_${pertandinganId}`, JSON.stringify({ data: result }))
     }
 }

@@ -132,7 +132,7 @@ const PondLayout = ({ handleOnClick }) => {
                 <foreignObject x="485" y="1200" width="200" height={"100"}>
                     <div dangerouslySetInnerHTML={{ __html: scaleSvgString }} />
                 </foreignObject>
-                <text x="450" y="1380" font-family="Arial" font-size="30" fill="#000" transform='rotate(90, 450, 1380)' text-anchor="middle">D0991</text>
+                <text x="450" y="1380" font-family="Arial" font-size="30" fill="#000" transform='rotate(90, 450, 1380)' text-anchor="middle">D0911</text>
                 {/* Scale */}
                 <text x="293" y="1640" font-family="Arial" font-size="30" fill="#000" text-anchor="middle">8</text>
                 <foreignObject x="270" y="1560" width="200" height={"100"}>
@@ -153,7 +153,7 @@ const PondLayout = ({ handleOnClick }) => {
                 {/* F */}
                 <text x="850" y="880" font-family="Arial" font-size="30" fill="#000" font-weight="bold" text-anchor="middle">F</text>
                 {/* E0916*/}
-                <text x="550" y="1100" font-family="Arial" font-size="30" fill="#000" transform='rotate(90, 550, 1100)' text-anchor="middle">E0992</text>
+                <text x="550" y="1100" font-family="Arial" font-size="30" fill="#000" transform='rotate(90, 550, 1100)' text-anchor="middle">E0912</text>
                 <foreignObject x="535" y="1210" width="50" height={"50"}>
                     <div dangerouslySetInnerHTML={{ __html: arrowBottomSvg }} />
                 </foreignObject>

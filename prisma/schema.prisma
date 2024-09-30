@@ -238,3 +238,11 @@ model timbang {
   admin_id                    Int?           @unique
   is_deleted                  Boolean        @default(false)
 }
+
+model hadiah_pertandingan {
+    id                          Int            @id @default(autoincrement()) @unique
+    no                          Int 
+    jenis                       String
+    hadiah                      String
+    is_deleted                  Boolean        @default(false)
+}
